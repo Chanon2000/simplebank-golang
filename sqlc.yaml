@@ -7,7 +7,7 @@ sql:
     go: 
       package: "db" # โดย "name" option จะบอก sqlc ว่า ชื่อของ Go package ที่เราจะ generate คืออะไร (ซึ่งครั้งนี้เราตั้งชื่อเป็น db)
       out: "db/sqlc" # กำหนด folder ที่ generated golang code files จะเข้าไปเก็บ
-      sql_package: "pgx/v5"
+      sql_package: "database/sql" # เนื่องจากผู้สอนใช้ database/sql ใน sqlc อยู่ไม่ใช่ pgx/v5 (เลี่ยนเสร็จรัน make sqlc ใหม่ด้วยนะ)
       emit_json_tags: true  # เนื่องจากเราต้องการใช้ sqlc ใส่ json tags ลงใน generated structs ด้วย
       emit_interface: true
       emit_empty_slices: true  # ถ้าเป็น true จะทำให้มี s อยู่ด้านหลังชื่อ table เสมอ เช่น accounts table -> Accounts struct (หรือก็คือชื่อมันจะกลายเป็น plural แทน)
