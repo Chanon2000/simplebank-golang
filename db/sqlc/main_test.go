@@ -15,14 +15,17 @@ const (
 )
 
 var testQueries *Queries
+var testDB *sql.DB // เอามาประกาศเป็น global แทนเพื่อให้ใช้ได้หลายที่และใน file อื่นได้
 
 func TestMain(m *testing.M) {
-	conn, err := sql.Open(dbDriver, dbSource)
+	var err error
+
+	testDB, err = sql.Open(dbDriver, dbSource)
 	if err != nil {
 		log.Fatal("connot connect to db:", err)
 	}
 
-	testQueries = New(conn)
+	testQueries = New(testDB)
 
 	os.Exit(m.Run()) // m.Run() เพื่อรัน unit test โดยมันจะ return exit code (ซึ่งเป็นตัวบอกว่า test นั้น pass หรือ fail ) แล้วเราก็ report กลับไปที่ test runner ผ่าน os.Exit()
 }
