@@ -9,13 +9,17 @@ import (
 )
 
 type Querier interface {
+	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	DeleteAccount(ctx context.Context, id int64) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
+	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
+	// ถ้าเป็น GetAccountForUpdate มันจะ block transaction อื่นจนกว่าจะ commit หรือทำงานเสร็จ แต่ว่าถ้าเป็น GetAccount มันจะไม่ block ทำให้อาจเกิดการ get value เก่าก่อน update ได้ นั้นเอง
+	// เติม NO KEY เพื่อบอก postgres ไม่ต้องไป update key หรือ ID column ของ account table ซึ่งแก้ปัญหา deadlock ตอนรัน TestTransferTx test ด้วย (ที่เกิดจาก FOREIGN KEY ระหว่าง table)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
