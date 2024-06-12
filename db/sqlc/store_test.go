@@ -120,3 +120,54 @@ func TestTransferTx(t *testing.T) {
 	require.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
 	require.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
 }
+
+
+func TestTransferTxDeadlock(t *testing.T) { // สร้าง test นี้ขึ้นมาโดย duplicate มาจาก TestTransferTx เพื่อ test deadlock ที่อาจเกิดขึ้นตอนรัน TransferTx เพราะรัน TestTransferTx แล้วมันไม่มี deadlock ในส่วนของตอน AddAccountBalance เลย
+	store := NewStore(testDB)
+
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
+	fmt.Println(">> before:", account1.Balance, account2.Balance)
+
+	n := 10
+	amount := int64(10)
+	errs := make(chan error)
+
+	for i := 0; i < n; i++ {
+		fromAccountID := account1.ID
+		toAccountID := account2.ID
+
+		if i % 2 == 1 {
+			fromAccountID = account2.ID
+			toAccountID = account1.ID
+		}
+
+		go func() { // ซึ่งเมื่อมี 2 concurrent transaction ทำการ update accounts' balance โดย transaction 1 ทำการ update acccount 1 ก่อน account 2 แต่อีก transaction ทำการ update account 2 ก่อน account 1 // ซึ่งแหละคือสิ่งที่ทำให้เกิด deadlock
+			_, err := store.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: 	fromAccountID,
+				ToAccountID: 	toAccountID,
+				Amount: 		amount,
+			})
+
+			errs <- err
+		}()
+	}
+
+
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+	}
+
+	// check the final updated balance
+	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+
+	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+
+	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
+
+	require.Equal(t, account1.Balance, updatedAccount1.Balance)
+	require.Equal(t, account2.Balance, updatedAccount2.Balance)
+}

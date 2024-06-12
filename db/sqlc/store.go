@@ -130,25 +130,74 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		// }
 
 		// มีอีกวิธีที่ดีกว่าเพราะลด query นั้นคือใช้ AddAccountBalance
-		result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID: arg.FromAccountID,
-			Amount: -arg.Amount,
-		})
-		if err != nil {
-			return err
-		}
+		// code ตรงนี้มันทำการ update balance ของ from-account และ to-account ซึ่งตอนรัน test คุณรันมันแบบ concurrent ซึ่งทำให้ถ้า 2 concurrent transactions นั้นเข้าไป update account เดียวกัน อาจทำให้เกิด deadlock ที่ postgres ได้
+		// if arg.FromAccountID < arg.ToAccountID { // จากการรัน TestTransferTxDeadlock แล้วทำให้เกิด deadlock ที่ส่วนนี้นั้น คุณเลยเอา account id มาเพื่อให้แต่ละ transactions นั้น update account ในลำดับเดียวกัน เพื่อไม่ให้เกิด deadlock ใน case ของ TestTransferTxDeadlock นั้นเอง
+		// 	result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		// 		ID: arg.FromAccountID,
+		// 		Amount: -arg.Amount,
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
+	
+		// 	result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		// 		ID: arg.ToAccountID,
+		// 		Amount: arg.Amount,
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// } else {
+		// 	result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		// 		ID: arg.ToAccountID,
+		// 		Amount: arg.Amount,
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID: arg.ToAccountID,
-			Amount: arg.Amount,
-		})
-		if err != nil {
-			return err
+		// 	result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		// 		ID: arg.FromAccountID,
+		// 		Amount: -arg.Amount,
+		// 	})
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+		
+		// ทำให้ code สั้นลง
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
+		} else {
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
 		}
-
-		return nil
+		
+		return err
 	})
 
-
 	return result, err
+}
+
+func addMoney(
+	ctx context.Context,
+	q *Queries,
+	accountID1 int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64,
+) (account1 Account, account2 Account, err error) {
+	account1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID1,
+		Amount: amount1,
+	})
+	if err != nil {
+		return // เนื่องจากเราใส่ name parameter ที่ return type ด้วยเลยทำให้ เมื่อเราใส่แค่ return keyword ตรงนี้มันก็จะ return variable ตาม name ที่คุณกำหนด ที่ return type เลยนั้นเอง
+		// คล้ายกับการเขียนแบบนี้ return account1, account2, err
+	}
+
+	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID2,
+		Amount: amount2,
+	})
+	return
 }
