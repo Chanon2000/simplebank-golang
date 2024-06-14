@@ -37,7 +37,7 @@ func TestTransferTx(t *testing.T) {
 
 			errs <- err
 			results <- result
-		}() // ใส่ () เพื่อ call function ในทำงาน
+		}() // ใส่ () เพื่อ call function ให้ทำงาน
 	}
 
 	// check results // จาก channel

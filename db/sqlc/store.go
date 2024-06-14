@@ -6,7 +6,8 @@ import (
 	"fmt"
 )
 
-// SQLStore provides all functions to execute SQL queries and transactions // เนื่องจาก Queries มันทำแค่ทีละ 1 operation ไม่ได้ support transaction ที่ต้องทำหลาย operation ดังนั้นเราเลยขยายความสามารถที่ store struct เพิ่ม embed Queries struct เข้ามาด้วย
+// SQLStore provides all functions to execute SQL queries and transactions // เนื่องจาก Queries มันทำแค่ทีละ 1 operation ไม่ได้ support transaction ที่ต้องทำหลาย operation ดังนั้นเราเลยขยายความสามารถที่ store struct นั้นเอง
+// นั้นคือ Queries struct จะรันแค่ operation เดียวแต่ Store struct จะรันเป็น transaction ได้เลย
 type Store struct {
 	*Queries // embed Queries struct ที่ struct นี้
 	db *sql.DB
@@ -22,14 +23,15 @@ func NewStore(db *sql.DB) *Store {
 
 // execTx executes a function within a database transaction
 func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error { // execTx ขึ้นต้นด้วย lowcase เพราะไม่จะใช้ func นี้แค่ใน package
-	tx, err := store.db.BeginTx(ctx, nil) // ใส่ nil เพื่อไม่ให้ default level ของ database ถูกใช้
+	// ชื่อ execTx ก็คือย่อมาจาก execute transaction นั้นแหละ
+	tx, err := store.db.BeginTx(ctx, nil) // BeginTx เหมือนทำการรัน BEGIN; ใน sql นั้นก็คือทำการเริ่ม transaction นั้นเอง // ใส่ nil ที่ arg 2 เพื่อไม่ให้ default level ของ database ถูกใช้ เท่านั้น
 	if err != nil {
 		return err
 	}
 
 	q := New(tx)
 	err = fn(q)
-	if err != nil {
+	if err != nil { // ถ้าเกิด error ให้กับการ Rollback ที่ tx.Rollback() นั้นเอง
 		// ถ้า err ไม่ nil เราจะทำการ rollback transaction โดยเรียก tx.Rollback() โดย Rollback() จะ return rollback error เช่นกัน 
 		if rbErr := tx.Rollback(); rbErr != nil {
 			// ถ้า rbErr ไม่ nil ก็จะ report 2 error
@@ -37,8 +39,8 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 		}
 		return err
 	}
-	// commit เมื่อทุก operation นั้น success ด้วย tx.Commit()
-	return tx.Commit()
+	
+	return tx.Commit() // commit เมื่อทุก operation นั้น success ด้วย tx.Commit()
 }
 
 // TransferTxParams contains the input parameters of the transfer transaction
@@ -63,7 +65,7 @@ type TransferTxResult struct {
 // It creates the transfer, add account entries, and update accounts' balance within a database transaction
 func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
-	err := store.execTx(ctx, func(q *Queries) error {
+	err := store.execTx(ctx, func(q *Queries) error { // คุณสามารถใช้ q หรือ query object ใน callback function นี้ เพื่อทำ CRUD operations ต่างๆได้ โดย operation ต่างๆนั้นจะรวมกันเป็น 1 single database transaction นั้นเอง
 		var err error
 
 		// txName := ctx.Value(txKey)
