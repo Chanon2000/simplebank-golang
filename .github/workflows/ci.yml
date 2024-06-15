@@ -1,0 +1,61 @@
+name: ci-test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    services: # services keyword เพื่อกำหนด external services ที่รันร่วมกับ job นี้
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: simple_bank
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: # ports keyword เพื่อกำหนด ports ที่เราต้อง expose ไปที่ external service นี้
+          - 5432:5432
+
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+      id: go # id ของ unique identifier ของ step นี้
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    # 2 step ที่ comment ไปนี้คือ ส่วนหนึ่งของ step ที่ github generate มาให้นะ
+    # - name: Get dependencies # ไม่ต้องทำอันนี้เพราะว่า go mod จะทำการ auto download missing libraries ให้อยู่แล้ว
+    #   run: |
+    #     go get -v -t -d ./...
+    #     if [ -f Gopkg.toml ]; then
+    #         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+    #         dep ensure
+    #     fi
+    # - name: Build # อันนี้ก็ไม่จำเป็นเพราะว่า app เรา built auto เมื่อรัน go test นั้นเอง
+    #   run: go build -v .
+    
+    - name: Install golang-migrate #  เพื่อ download golang migrate cli ก่อน (เพราะถ้าไม่ทำมันจะหน้า command migrate ไม่เจอแล้วก็ error ไป)
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate /usr/bin/migrate
+        which migrate
+      # เอามาจาก https://github.com/golang-migrate/migrate/tree/master/cmd/migrate (เนื่องจากเราใช้ ubuntu หรือก็คือ linux นั้นแหละ)
+      # sudo mv migrate /usr/bin/migrate เพื่อย้าย migrate file ที่ได้จากการแตกนั้นไปที่ /usr/bin/ (ชื่อ file ต้องเป็น migrate นะ)
+      # which migrate เพื่อ check ว่า migrate cli binary นั้น install สำเร็จมั้ย
+    - name: Run migrations
+      run: make migrateup
+
+    - name: Test
+      run: make test
