@@ -15,20 +15,14 @@ func TestTransferTx(t *testing.T) {
 	account2 := createRandomAccount(t)
 	fmt.Println(">> before:", account1.Balance, account2.Balance)
 
-	// การเขียน database transaction นั้นเป็นสิ่งที่คุณต้องระวัง ซึ่งมันง่ายที่จะเขียน แต่มันอาจกลายเป็นฝันร้ายได้ถ้าคุณไม่จัดการ concurrency อย่างระมัดระวัง
-	// สิ่งที่จะทำให้มั้นใจว่า transaction นั้นทำงานได้ดี คือรันมันเป็นหลายๆ concurrent go routines
-	// run n concurrent transfer transactions
-	n := 5 // เราจะรัน 5 transactions
+	n := 5
 	amount := int64(10)
 
 	errs := make(chan error)
 	results := make(chan TransferTxResult)
 
 	for i := 0; i < n; i++ {
-		// txName := fmt.Sprintf("tx %d", i+1) // กำหนดชื่อ transaction 
-		go func() { // ใช้ go keyword เพื่อ start new routine
-			// ctx := context.WithValue(context.Background(), txKey, txName) // ใส่ new context ไปกับ transaction name แทน
-			// result, err := store.TransferTx(ctx, TransferTxParams{
+		go func() {
 			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: 	account1.ID,
 				ToAccountID: 	account2.ID,
@@ -37,10 +31,9 @@ func TestTransferTx(t *testing.T) {
 
 			errs <- err
 			results <- result
-		}() // ใส่ () เพื่อ call function ให้ทำงาน
+		}()
 	}
 
-	// check results // จาก channel
 	existed := make(map[int]bool)
 
 	for i := 0; i < n; i++ {
@@ -122,7 +115,7 @@ func TestTransferTx(t *testing.T) {
 }
 
 
-func TestTransferTxDeadlock(t *testing.T) { // สร้าง test นี้ขึ้นมาโดย duplicate มาจาก TestTransferTx เพื่อ test deadlock ที่อาจเกิดขึ้นตอนรัน TransferTx เพราะรัน TestTransferTx แล้วมันไม่มี deadlock ในส่วนของตอน AddAccountBalance เลย
+func TestTransferTxDeadlock(t *testing.T) {
 	store := NewStore(testDB)
 
 	account1 := createRandomAccount(t)
@@ -142,7 +135,7 @@ func TestTransferTxDeadlock(t *testing.T) { // สร้าง test นี้ข
 			toAccountID = account1.ID
 		}
 
-		go func() { // ซึ่งเมื่อมี 2 concurrent transaction ทำการ update accounts' balance โดย transaction 1 ทำการ update acccount 1 ก่อน account 2 แต่อีก transaction ทำการ update account 2 ก่อน account 1 // ซึ่งแหละคือสิ่งที่ทำให้เกิด deadlock
+		go func() {
 			_, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountID: 	fromAccountID,
 				ToAccountID: 	toAccountID,

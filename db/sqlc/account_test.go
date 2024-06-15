@@ -1,4 +1,3 @@
-// เอา test files ไว้ใน folder เดียวกับ code ที่จะ test คือ convention ใน golang
 package db
 
 import (
@@ -8,13 +7,12 @@ import (
 	"time"
 
 	"github.com/chanon2000/simplebank/util"
-	"github.com/stretchr/testify/require" // ใช้ testify package ดีกว่าใช้ standard package ในการ check test result
+	"github.com/stretchr/testify/require"
 )
 
-// ถ้าไม่มี Test ขึ้นต้นชื่อ go ก็จะไม่รันมันเป็น unit test
 func createRandomAccount(t *testing.T) Account {
 	arg := CreateAccountParams{
-		Owner: util.RandomOwner(), // ในการ random values ใน test แทน เพื่อที่เราจะได้ไม่ต้องมาคิด value เองตลอด
+		Owner: util.RandomOwner(),
 		Balance: util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
@@ -33,10 +31,7 @@ func createRandomAccount(t *testing.T) Account {
 	return account
 }
 
-// ชื่อ test function ใน golang ควรขึ้นต้นคำว่า Test..
 func TestCreateAccount(t *testing.T) {
-	// จะเขียน test นี้ได้คุณต้อง setup connection ไปที่ db และ queryies object ก่อน ซึ่งที่ที่ดีที่สุดที่จะทำคือ main_test.go
-
 	createRandomAccount(t)
 }
 
