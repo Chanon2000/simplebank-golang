@@ -10,4 +10,4 @@ sql:
       sql_package: "database/sql"
       emit_json_tags: true
       emit_interface: true
-      emit_empty_slices: true
+      emit_empty_slices: true # ตรงนี้เป็น true ทำให้เมื่อเรา get list accounts api ในส่วนที่ไม่มี value ใดๆ จะทำให้ api return เป็น null แทน [] นั้นเอง
