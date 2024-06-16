@@ -9,12 +9,12 @@ import (
 
 // Server serves HTTP requests for our banking service.
 type Server struct {
-	store      *db.Store // เพื่อให้เราสามารถสื่อสารกับ db เมื่อทำการ processing API request
+	store      db.Store // เพื่อให้เราสามารถสื่อสารกับ db เมื่อทำการ processing API request
 	router     *gin.Engine // เพื่อทำให้เราสามารถส่งแต่ละ API request ไปที่ handler function
 }
 
 // NewServer creates a new HTTP server and set up routing.
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.Store) *Server {
 	// function นี้ จะสร้าง server instance ใหม่ และ setup ทุก http api routes ให้กับ service ของเราบน server
 	server := &Server{store: store} // สร้าง new server instance 
 	router := gin.Default() // สร้าง new router โดยการเรียก gin.Default()
