@@ -10,7 +10,7 @@ import (
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"` // oneof เพื่อกำหนด value ที่ field นี้สามารถเก็บได้
+	Currency string `json:"currency" binding:"required,currency"` // oneof เพื่อกำหนด value ที่ field นี้สามารถเก็บได้
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {

@@ -3,6 +3,8 @@ package api
 import (
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10" // ใช้ version 10
 )
 
 // คือ file ที่เราจะ implement HTTP API server
@@ -19,9 +21,15 @@ func NewServer(store db.Store) *Server {
 	server := &Server{store: store} // สร้าง new server instance 
 	router := gin.Default() // สร้าง new router โดยการเรียก gin.Default()
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok { // เพื่อเอา current validator engine ที่ gin ใช้อยู่ (ซึ่ง binding เป็น sub-package ของ gin)
+		v.RegisterValidation("currency", validCurrency) // เอา validCurrency function ที่เราเขียนมา register ลง validator ชื่อ "currency"
+	} 
+
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccount)
+
+	router.POST("/transfers", server.createTransfer)
 
 	server.router = router
 	return server
