@@ -11,8 +11,8 @@ import (
 
 const addAccountBalance = `-- name: AddAccountBalance :one
 UPDATE accounts
-SET balance = balance + $1 -- ใส่ sqlc.arg(amount) แทนใส่เป็น $2 เพื่อให้ชื่อ arg ตอน generate go code นั้นชื่อ Amount แทนนั้นเอง
-WHERE id = $2 -- แทนใส่เป็น $1 เพื่อบอก sqlc ให้ generate parameter name ตามที่กำหนดเลย
+SET balance = balance + $1
+WHERE id = $2
 RETURNING id, owner, balance, currency, created_at
 `
 
@@ -111,7 +111,6 @@ func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, e
 }
 
 const listAccounts = `-- name: ListAccounts :many
-
 SELECT id, owner, balance, currency, created_at FROM accounts
 ORDER BY id
 LIMIT $1
@@ -123,8 +122,6 @@ type ListAccountsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-// ถ้าเป็น GetAccountForUpdate มันจะ block transaction อื่นจนกว่าจะ commit หรือทำงานเสร็จ แต่ว่าถ้าเป็น GetAccount มันจะไม่ block ทำให้อาจเกิดการ get value เก่าก่อน update ได้ นั้นเอง
-// เติม NO KEY เพื่อบอก postgres ไม่ต้องไป update key หรือ ID column ของ account table ซึ่งแก้ปัญหา deadlock ตอนรัน TestTransferTx test ด้วย (ที่เกิดจาก FOREIGN KEY ระหว่าง table)
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
 	rows, err := q.db.QueryContext(ctx, listAccounts, arg.Limit, arg.Offset)
 	if err != nil {

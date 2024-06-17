@@ -11,8 +11,10 @@ import (
 )
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner: util.RandomOwner(),
+		Owner: user.Username, // เนื่องจาก Username เป็น foreign key สำหรับ Owner เลยต้องสร้าง user ก่อนเพื่อมา link กับ account
 		Balance: util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
