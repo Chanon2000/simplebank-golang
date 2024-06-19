@@ -16,7 +16,6 @@ type transferRequest struct {
 	ToAccountID   int64  `json:"to_account_id" binding:"required,min=1"`
 	Amount        int64  `json:"amount" binding:"required,gt=0"`
 	Currency      string `json:"currency" binding:"required,currency"` 
-	// oneof=USD EUR CAD จะเห็นว่าเรา hardcode currency ซึ่งถ้าในอนาคตเราต้องจะ support currency เป็นร้อยๆแหละ // เราเลยจะมาทำ custom validator
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {

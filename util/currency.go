@@ -1,7 +1,7 @@
 package util
-// Implement logic check currency ว่า supported หรือไม่ใน file นี้
+
 // Constants for all supported currencies
-const ( // ปัจจบัน support แค่ 3 currency นี้ไปก่อน
+const ( 
 	USD = "USD"
 	EUR = "EUR"
 	CAD = "CAD"

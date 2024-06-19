@@ -28,8 +28,6 @@ func addAuthorization(
 }
 
 func TestAuthMiddleware(t *testing.T) {
-	// username := util.RandomOwner()
-
 	testCases := []struct {
 		name          string
 		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
@@ -47,7 +45,6 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "NoAuthorization",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				// ก็คือจะไม่ทำ authorization ใน case นี้
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -56,7 +53,7 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "UnsupportedAuthorization",
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, "unsupported", "user", time.Minute) // ใช้ "unsupported" แทน "bearer"
+				addAuthorization(t, request, tokenMaker, "unsupported", "user", time.Minute)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -87,12 +84,12 @@ func TestAuthMiddleware(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			server := newTestServer(t, nil)
-			authPath := "/auth" // ใส่ api route นี้เข้ามาสำหรับ test เท่านั้น
+			authPath := "/auth"
 			server.router.GET(
 				authPath,
 				authMiddleware(server.tokenMaker),
 				func(ctx *gin.Context) {
-					ctx.JSON(http.StatusOK, gin.H{}) // gin.H{} คือ empty body
+					ctx.JSON(http.StatusOK, gin.H{})
 				},
 			)
 

@@ -20,16 +20,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// เอามาจากการดู implement ของ Eq() method ใน gomock ***************************
-// ใน gomock มันคือ eqMatcher
 type eqCreateUserParamsMatcher struct {
 	arg      db.CreateUserParams
 	password string
 }
 
-// ใน gomock มันคือ eqMatcher
 func (e eqCreateUserParamsMatcher) Matches(x interface{}) bool {
-	// ตรงนี้แหละคือส่วนที่ custom เพิ่มขึ้นมา เพื่อทำการ check hash ด้วย util.CheckPassword
 	arg, ok := x.(db.CreateUserParams)
 	if !ok {
 		return false
@@ -48,16 +44,12 @@ func (e eqCreateUserParamsMatcher) String() string {
 	return fmt.Sprintf("matches arg %v and password %v", e.arg, e.password)
 }
 
-// copy มาจาก Eq function ใน gomock แล้วเปลี่ยนชื่อเป็น EqCreateUserParams
 func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher {
 	return eqCreateUserParamsMatcher{arg, password}
 }
-// ****************************************************************************
 
 func TestCreateUserAPI(t *testing.T) {
 	user, password := randomUser(t)
-	// hashedPassword, err := util.HashPassword(password) 
-	// require.NoError(t, err)
 
 	testCases := []struct {
 		name          string
@@ -76,15 +68,10 @@ func TestCreateUserAPI(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateUserParams{
 					Username: user.Username,
-					// HashedPassword: hashedPassword,
 					FullName: user.FullName,
 					Email:    user.Email,
 				}
 				store.EXPECT().
-					// CreateUser(gomock.Any(), gomock.Any()). 
-					// ใส่ gomock.Any() ใน arg 2 มันจะทำให้ test อ่อนแอลง เพราะว่าถ้ามันมาเป็น empty CreateUserParams object มันก็จะผ่านเช่นกัน เราเลยเปลี่ยนมาใช้อย่างอื่นนั้นเอง
-					// CreateUser(gomock.Any(), gomock.Eq(arg)).
-					// hashedPassword ที่สร้างใน test กับใน CreateUserAPI function จะต่างกันเสมอแม้จะใน passowrd input เดียวกัน ทำให้วิธีที่ดีที่สุดในเราจะ implement test ในส่วนนี้คือสร้าง custom match function ใหม่เป็นของเราขึ้นมาเอง นั้นก็คือ EqCreateUserParams (โดยลอกจาก Eq() method มาดัดแปลงอีกทีนั้นเอง)
 					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
 					Times(1).
 					Return(user, nil)

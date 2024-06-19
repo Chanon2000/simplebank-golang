@@ -1,6 +1,5 @@
 package api
 
-// เพื่อ test account api function
 import (
 	"bytes"
 	"database/sql"
@@ -27,15 +26,13 @@ func TestGetAccountAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
 
-	// คนสอนเรียกว่า "สร้าง table driven test set"
-	testCases := []struct { // คือ anonymous class เพื่อทำการเก็บ test data
+	testCases := []struct {
 		name          string
 		accountID     int64
 		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-		buildStubs    func(store *mockdb.MockStore) // คือ function ที่เราใส่ mock store เป็น input ซึ่งเราสามารถใช้มันเพื่อ build stub ได้ตาม case ที่แตกต่างกัน
-		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder) // เพื่อ check output ของ api
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
 	}{
-		// ในนี้คือกำหนดแต่ละ scenario
 		{
 			name:      "OK",
 			accountID: account.ID,
@@ -54,10 +51,10 @@ func TestGetAccountAPI(t *testing.T) {
 			},
 		},
 		{
-			name:      "UnauthorizedUser", // เมื่อใช้ token ที่ไม่ใช่ของตัวเอง
+			name:      "UnauthorizedUser",
 			accountID: account.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "unauthorized_user", time.Minute) // สมมุติว่าใส่ token เป็น unauthorized_user
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "unauthorized_user", time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -132,16 +129,15 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 	}
 
-	// ทำการ refactor code เพื่อให้สามารถ test ได้ในหลายๆ scenarios
 	for i := range testCases {
-		tc := testCases[i] // tc = test case (หรือก็คือ scenarios ต่างๆ)
+		tc := testCases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			store := mockdb.NewMockStore(ctrl)
-			tc.buildStubs(store) // สร้าง stub ใน buildStubs function 
+			tc.buildStubs(store)
 
 			// start test server and send request
 			server := newTestServer(t, store)
@@ -153,36 +149,9 @@ func TestGetAccountAPI(t *testing.T) {
 
 			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
-			tc.checkResponse(t, recorder) // check response ด้วย checkResponse
+			tc.checkResponse(t, recorder)
 		})
 	}
-
-	// setup store และ controller โดยใช้ gomock // ซึ่งจะทำให้คุณเห็นว่าการใช้ gomock เขียน unit test นั้นมันทำให้การเขียน unit test ง่ายขึ้นเยอะเลย 
-	// 1. สร้าง controller
-	// ctrl := gomock.NewController(t) // ctrl = controller // สร้าง controller ก่อน โดยใส่ t object เป็น input
-	// defer ctrl.Finish() // ต้อง Finish controller หลังจากทำงานเสร็จด้วย
-
-	// 2. สร้าง new mock store
-	// store := mockdb.NewMockStore(ctrl) // สร้าง new mock store โดยต้องใส่ controller เป็น input
-
-	// 3. build stubs ให้กับ mock store // ซึ่งเนื่องจาก getAccount function ที่เราจะ test นั้นมีแค่ GetAccount method ที่ถูกเรียกใช้ เราเลยจะ build stub ในกับแค่ function
-	// build stubs โดยเรียก store.EXPECT().GetAccount()
-	// store.EXPECT().
-	// 		GetAccount(gomock.Any(), gomock.Eq(account.ID)). // GetAccount รับ 2 arg // โดย arg เราใส่ gomock.Any() ไปเลย เพื่อบอกว่า arg แรกเป็นอะไรก็ได้ (เราคงไม่จำเป็นต้อง test การใส่ context หรอก)
-	// 		// arg ใส่ id โดยใส่ gomock.Eq(account.ID) เพื่อบอกว่า id ที่ใส่เข้ามาต้องมีค่าเท่ากับ account.ID
-	// 		Times(1). // กำหนดว่า GetAccount จะต้องถูกเรียกแค่ครั้งเดียว
-	// 		Return(account, nil) // กำหนดว่า GetAccount จะต้อง return เป็น account, nil
-	
-	// start test server and send request
-	// server := NewServer(store) // start server ด้วย mock store
-	// เพื่อ testing HTTP API in Go เราไม่จำเป็นต้อง start real HTTP server แต่เราแค่ใช้ recorder feature ของ httptest package เพื่อจด response ของ API request
-	// recorder := httptest.NewRecorder() // โดยการเรียก httptest.NewRecorder() เพื่อสร้าง ResponseRecorder
-
-	// url := fmt.Sprintf("/accounts/%d", account.ID) // สร้าง url path ของ pi ที่เราต้องการจะเรียก
-	// request, err := http.NewRequest(http.MethodGet, url, nil) // สร้าง new http request ด้วย NewRequest ตามด้วยใส่ method, url, body เป็น input โดยในที่นี้ใส่ nil เป็น body
-	// require.NoError(t, err) 
-
-	// server.router.ServeHTTP(recorder, request) // ทำการส่ง request ที่สร้างนี้โดย ServerHTTP โดยใส่ recorder และ request // ซึ่ง response ที่ได้จะอยู่ใน recorder ที่เราใส่เป็น input นี้
 
 }
 
@@ -193,6 +162,7 @@ func TestCreateAccountAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          gin.H
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
@@ -201,6 +171,9 @@ func TestCreateAccountAPI(t *testing.T) {
 			body: gin.H{
 				"Owner": account.Owner,
 				"currency": account.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateAccountParams{
@@ -225,6 +198,8 @@ func TestCreateAccountAPI(t *testing.T) {
 				"Owner": account.Owner,
 				"currency": account.Currency,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Any()).
@@ -239,6 +214,9 @@ func TestCreateAccountAPI(t *testing.T) {
 			body: gin.H{
 				"Owner": account.Owner,
 				"currency": account.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -255,6 +233,9 @@ func TestCreateAccountAPI(t *testing.T) {
 			body: gin.H{
 				"Owner": account.Owner,
 				"currency": "invalid",
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -288,6 +269,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
 		})
@@ -311,6 +293,7 @@ func TestListAccountsAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		query         Query
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
@@ -320,8 +303,12 @@ func TestListAccountsAPI(t *testing.T) {
 				pageID:   1,
 				pageSize: n,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.ListAccountsParams{
+					Owner:  user.Username,
 					Limit:  int32(n),
 					Offset: 0,
 				}
@@ -342,6 +329,8 @@ func TestListAccountsAPI(t *testing.T) {
 				pageID:   1,
 				pageSize: n,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					ListAccounts(gomock.Any(), gomock.Any()).
@@ -356,6 +345,9 @@ func TestListAccountsAPI(t *testing.T) {
 			query: Query{
 				pageID:   1,
 				pageSize: n,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -373,6 +365,9 @@ func TestListAccountsAPI(t *testing.T) {
 				pageID:   -1,
 				pageSize: n,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					ListAccounts(gomock.Any(), gomock.Any()).
@@ -387,6 +382,9 @@ func TestListAccountsAPI(t *testing.T) {
 			query: Query{
 				pageID:   1,
 				pageSize: 100000,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -422,6 +420,7 @@ func TestListAccountsAPI(t *testing.T) {
 			q.Add("page_size", fmt.Sprintf("%d", tc.query.pageSize))
 			request.URL.RawQuery = q.Encode()
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
 		})
@@ -437,12 +436,12 @@ func randomAccount(owner string) db.Account {
 	}
 }
 
-func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account db.Account) { // เนื่องจาก recorder.Body มี type เป็น *bytes.Buffer
-	data, err := io.ReadAll(body) // io.ReadAll เพื่ออ่าน body ของ response หรือก็คือใน recorder
+func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account db.Account) {
+	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
 	var gotAccount db.Account
-	err = json.Unmarshal(data, &gotAccount) // Unmarshal data ไปให้กับ gotAccount
+	err = json.Unmarshal(data, &gotAccount)
 	require.NoError(t, err)
 	require.Equal(t, account, gotAccount)
 }

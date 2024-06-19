@@ -4,16 +4,15 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq" // import ที่ตรงนี้ด้วยเพื่อให้สามารถใช้งานเบื้องหลังใน file นี้ได้
+	_ "github.com/lib/pq"
 	"github.com/chanon2000/simplebank/api"
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	"github.com/chanon2000/simplebank/util"
 )
 
-// main.go คือเป็น entry point ของ server
 
 func main() {
-	config, err := util.LoadConfig(".") // "." เนื่องจาก main.go มันอยู่ location เดียวกับ app.env
+	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("connot load config:", err)
 	}
@@ -30,7 +29,7 @@ func main() {
 		log.Fatal("cannot create server:", err)
 	}
 
-	err = server.Start(config.ServerAddress) // คือสั่ง start server ตรงนี้
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}

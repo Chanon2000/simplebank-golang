@@ -52,8 +52,7 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	require.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
-	token, err := jwtToken.SignedString(jwt.UnsafeAllowNoneSignatureType) // SignedString เพื่อทำการ sign token (เอามาใช้ตอน test ได้) 
-	// UnsafeAllowNoneSignatureType คือใช้ none signature type เป็น secret key // ซึ่งเหมาะสำหรับใช้ test เท่านั้นนะ เพราะมันจะทำให้ไม่ secure เวลาใช้ในงานจริง
+	token, err := jwtToken.SignedString(jwt.UnsafeAllowNoneSignatureType)
 	require.NoError(t, err)
 
 	maker, err := NewJWTMaker(util.RandomString(32))

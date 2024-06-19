@@ -13,13 +13,13 @@ import (
 )
 
 type createUserRequest struct {
-	Username string `json:"username" binding:"required,alphanum"` // alphanum คือ tag จาก validator package ที่บอกว่า field ที่จะมีแค่ ASCII alphanumeric characters เท่านั้น
+	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
 	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"` // email tag เพื่อ validate field นี้ให้มี format เป็น email 
+	Email    string `json:"email" binding:"required,email"`
 }
 
-type userResponse struct { // หลักๆคือจะไม่มี hashedpassword ใน response
+type userResponse struct {
 	Username          string    `json:"username"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
@@ -97,7 +97,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err)) // เมื่อมี unexpected error เกิดขึ้น เราจะส่ง 500 แทน
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 

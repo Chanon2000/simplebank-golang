@@ -40,5 +40,3 @@ ALTER TABLE "entries" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("id"
 ALTER TABLE "transfers" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("id");
 
 ALTER TABLE "transfers" ADD FOREIGN KEY ("to_account_id") REFERENCES "accounts" ("id"); 
-
--- เนื่องจากในความเป็นจริงนั้น requirement อาจเปลี่ยนไปเปลี่ยนมา และอาจเปลี่ยนแปลงหลังเข้า deployed ขึ้น production ไปแล้วรอบนึง ซึ่งเมื่อเรามี data ใน production db อยู่ก่อนแล้ว เราไม่สามารถ reset มันหรือ rerun old migration ได้ ทำให้วิธีที่ดีที่สุดในการ apply new schema change คือ create new migration version ไปเลย

@@ -14,7 +14,7 @@ func createRandomAccount(t *testing.T) Account {
 	user := createRandomUser(t)
 
 	arg := CreateAccountParams{
-		Owner: user.Username, // เนื่องจาก Username เป็น foreign key สำหรับ Owner เลยต้องสร้าง user ก่อนเพื่อมา link กับ account
+		Owner: user.Username,
 		Balance: util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
@@ -87,7 +87,7 @@ func TestListAccounts(t *testing.T) {
 	}
 
 	arg := ListAccountsParams{
-		Owner: lastAccount.Owner, // ก็คือจะเอา account สุดท้ายที่ random สร้างขึ้นมา มาใช้ในการ filter ที่ ListAccounts นั้นเอง
+		Owner: lastAccount.Owner,
 		Limit:  5,
 		Offset: 0,
 	}

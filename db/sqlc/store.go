@@ -7,8 +7,8 @@ import (
 )
 
 // Store provides all functions to execute db queries and transactions
-type Store interface { // ซึ่งก็คือใส่ interface ของ function ที่ต้องการจะ mock ลงใน interface นี้นั้นเอง
-	Querier // embed Querier ลง Store เพื่อทำให้ Store interface มี function ต่างๆเหมือน Querier
+type Store interface {
+	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) 
 }
 

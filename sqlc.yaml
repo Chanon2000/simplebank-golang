@@ -10,5 +10,5 @@ sql:
       sql_package: "database/sql"
       emit_json_tags: true
       # emit_prepared_queries: false
-      emit_interface: true # เพื่อ emit interface ที่ทีืุก function ของ Queries struct ได้ ซึ่งเมื่อมันเป็น true แล้วรัน make sqlc คุณจะเห็นมัน generate querier.go มาให้ ที่มี Querier interface ที่มีทุก function ที่ทำการ CRUD database
-      emit_empty_slices: true # ตรงนี้เป็น true ทำให้เมื่อเรา get list accounts api ในส่วนที่ไม่มี value ใดๆ จะทำให้ api return เป็น null แทน [] นั้นเอง
+      emit_interface: true
+      emit_empty_slices: true

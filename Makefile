@@ -13,10 +13,10 @@ migrateup:
 migrateup1:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
 
-migratedown: #  command นี้จะรัน down-script ของทุกๆ migrations version นะ
+migratedown:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
 
-migratedown1: # รัน down-script แค่ version ล่าสุดแค่ version เดียว
+migratedown1:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
 sqlc:
