@@ -52,11 +52,14 @@ func (server *Server) setupRouter() {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.listAccount)
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker)) // ใส่ () มันจะคือการ call ในรัน function ซึ่ง authMiddleware มันก็จะ return ออกมาเป็น middleware ที่มีการใส่ server.tokenMaker เป็น arg นั้นเอง
+	// routes ใหนที่มา .Method ต่างๆที่ authRoutes นี้ก็จะมี middleware เดียวกันนั้นเอง
 
-	router.POST("/transfers", server.createTransfer)
+	authRoutes.POST("/accounts", server.createAccount)
+	authRoutes.GET("/accounts/:id", server.getAccount)
+	authRoutes.GET("/accounts", server.listAccount)
+
+	authRoutes.POST("/transfers", server.createTransfer)
 
 	server.router = router
 }
