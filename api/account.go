@@ -70,7 +70,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 type listAccountRequest struct {
 	PageID int32 `form:"page_id" binding:"required,min=1"` // ใช้ form เนื่องจากเราจะส่ง pageID นี้ผ่าน query string ไม่ใช่ uri parameter // int32 ก็พอ
-	PageSize int32 `form:"page_size" binding:"required",min=5,max=10`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listAccount(ctx *gin.Context) {
