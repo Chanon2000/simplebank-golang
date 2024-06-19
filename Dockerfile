@@ -16,6 +16,8 @@ COPY --from=builder /app/main .
 # copy มาแค่ file ใน /app/main เท่านั้น
 
 # ทำให้จาก 588MB เมื่อ build ใหม่โดย multi-stage script นี้เหลือเป็น 21.2MB ทันที (ลดเยอะมาก)
+COPY app.env .
+# เพื่อ copy app.env เข้า image # โดยจะเห็นว่าใน app.env มี TOKEN_SYMMETRIC_KEY เก็บอยู่ซึ่งถ้าใน production image นั้นเราไม่ควรเอามันไปเก็บไว้ ซึ่งเราจะเรียนวิธีแทน production config ใน lecture อื่น
 
 EXPOSE 8080 
 CMD [ "/app/main" ]
