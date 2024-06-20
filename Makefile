@@ -7,17 +7,17 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb simple_bank
 
-migrateup:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
+migrateup: # เป็น pass และ host เป็นของ db ที่เราบน aws
+	migrate -path db/migration -database "postgresql://root:TK3NVg8y63kTrdJsZqg5@simple-bank.c7btprkzoik4.ap-southeast-1.rds.amazonaws.com:5432/simple_bank?sslmode=disable" -verbose up
 
 migrateup1:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database "postgresql://root:TK3NVg8y63kTrdJsZqg5@simple-bank.c7btprkzoik4.ap-southeast-1.rds.amazonaws.com:5432/simple_bank?sslmode=disable" -verbose up 1
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "postgresql://root:TK3NVg8y63kTrdJsZqg5@simple-bank.c7btprkzoik4.ap-southeast-1.rds.amazonaws.com:5432/simple_bank?sslmode=disable" -verbose down
 
 migratedown1:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
+	migrate -path db/migration -database "postgresql://root:TK3NVg8y63kTrdJsZqg5@simple-bank.c7btprkzoik4.ap-southeast-1.rds.amazonaws.com:5432/simple_bank?sslmode=disable" -verbose down 1
 
 sqlc:
 	sqlc generate
