@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=simple_bank
+
+  api:
+    build:
+      context: . # . หมายถึง current directory
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+    depends_on: # เพื่อให้ postgres start ก่อน api service # แต่ depends_on มันยังไม่ได้ทำให้เรามั้นใจว่า postgres นั้นอยู่ใน state ที่พร้อมแล้วนะ เราเลยมีการเพิ่มใช้ wait-for ในครั้งนี้ เข้ามาด้วยนั้นเอง
+      - postgres
+    entrypoint: # ตรงนี้คือเราทำการ override entrypoint ใน image นะ ทำให้ทั้ง CMD และ ENTRYPOINT ถูก ignore 
+      [ 
+        "/app/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: [ "/app/main" ] # เนื่องจาก CMD ถูก ignore ทำให้เราเลยต้องมาเขียน command ซ้ำอีกที
