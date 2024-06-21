@@ -7,6 +7,7 @@ set -e
 
 # ทำการรัน migrate up
 echo "run db migration"
+source /app/app.env # ทำการโหลด /app/app.env (ซึ่งคือ path ที่เก็บ app.env ใน image)
 /app/migrate -path /app/migration -database "$DB_SOURCE" -verbose up
 # DB_SOURCE จาก app.env นั้นแหละ
 
