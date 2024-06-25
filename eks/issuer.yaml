@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer # ClusterIssuer จะทำงานในทุก namespace ใน cluster (ถ้าคุณกำหนดเป็น Issuer มันจะทำงานแค่ namespace เดียว)
+metadata:
+  name: letsencrypt # กำหนด name ของ resource
+spec:
+  acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: chanonmixmay2543@hotmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
+      name: letsencrypt-account-private-key # กำหนด name ของ resource ที่ใช้เพื่อเก็บ account's private key (กำหนดเอง)
+    # Add a single challenge solver, HTTP01 using nginx
+    solvers: # กำหนด challenge resolver ซึ่งเราจะใชเป็น HTTP-01 พร้อมกับ nginx ingress เพื่อเรากำหนดเมื่อ lecture ก่อนหน้า
+    - http01:
+        ingress:
+          ingressClassName: nginx

@@ -9,6 +9,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress # กำหนดเป็น Ingress
 metadata:
   name: sinple-bank-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt # Issuer ที่จะใช้
 spec: # กำหนด rules ต่างๆใน spec (เพื่อที่จะ route traffics ไปที่ services ที่แตกต่างกัน)
   ingressClassName: nginx # ถ้าไม่ใส่ external address จะไม่ขึน # เพิ่ม nginx class เข้า sinple-bank ingress
   rules:
@@ -23,3 +25,7 @@ spec: # กำหนด rules ต่างๆใน spec (เพื่อที�
             port:
               number: 80
   # กำหนด rule เดียวเพราะตอนนี้เรามีแค่ service เดียว
+  tls:
+  - hosts: # กำหนด domain name และที่ที่จะเก็บ certificate
+    - api.simple-bank-mick.com
+    secretName: simple-bank-api-cert # นั้นคือ certificates จะเก็บลง file ชื่อ simple-bank-api-cert
