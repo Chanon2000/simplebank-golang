@@ -10,4 +10,4 @@ spec: # spec ของ server
       port: 80 # port ที่ service จะทำการ listening
       targetPort: 8080 # เนื่องจาก api container ของเรา export ที่ port ouh
     # เหมือนรับ incoming requests จาก port 80 แล้วส่งไปที่ 8080 ที่ที่ container เอาไว้รับ request นั้นเอง
-  type: LoadBalancer
+  type: ClusterIP # เปลี่ยนกลับเป็น ClusterIP เพราะเราไม่อยากจะ expose service นี้ไปที่ outside world ละ

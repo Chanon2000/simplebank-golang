@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: IngressClass # ชนิตของ resources
+metadata:
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx
+--- # --- เพื่อแยก 2 ressource ใน yaml เดียวกัน
+apiVersion: networking.k8s.io/v1
+kind: Ingress # กำหนดเป็น Ingress
+metadata:
+  name: sinple-bank-ingress
+spec: # กำหนด rules ต่างๆใน spec (เพื่อที่จะ route traffics ไปที่ services ที่แตกต่างกัน)
+  ingressClassName: nginx # ถ้าไม่ใส่ external address จะไม่ขึน # เพิ่ม nginx class เข้า sinple-bank ingress
+  rules:
+  - host: "api.simple-bank-mick.com" # api.simple-bank-mick.com คือ domain ของ app เรานั้นเอง
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: simple-bank-api-service # service name จาก service.yaml
+            port:
+              number: 80
+  # กำหนด rule เดียวเพราะตอนนี้เรามีแค่ service เดียว
