@@ -16,7 +16,9 @@ spec: # เพื่อกำหนด deployment object
     spec: # spec ของ pod # ซึ่งคือจุดที่บอก deployment ว่าจะ deploy containers ยังไง นั้นเอง
       containers:
       - name: simple-bank-api # ชื่อของ container
-        image: 668543706981.dkr.ecr.ap-southeast-1.amazonaws.com/simplebank:692c638cd088f048e0a5c6e6d2bad86c2ffda9da # คือ image url จากใน ECR ใน simplebank repository # copy มาวางได้เลย
+        image: 668543706981.dkr.ecr.ap-southeast-1.amazonaws.com/simplebank:latest # คือ image url จากใน ECR ใน simplebank repository # copy มาวางได้เลย
         # 692c638cd088f048e0a5c6e6d2bad86c2ffda9da คือ tag ของ image ซึ่งมันเอามาจาก git commit hash นั้นเอง
+        # เพื่อเอา image ที่มี tag คือ latest มา deploy แทน
+        imagePullPolicy: Always # เพื่อให้มั้นใจว่่า kubernetes จะ pull latest image จาก ECR เสมอก่อนที่จะ deploy container
         ports:
         - containerPort: 8080 # คือ port ที่ container จะ export ไปที่ network

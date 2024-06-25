@@ -6,13 +6,19 @@ on:
 
 jobs:
 
-  build:
+  deploy: # เปลี่ยนชื่อเป็น deploy เนื่องจากเราจะไม่ได้ทำแค่ build แล้ว แต่เราจะ deploy ด้วย
     name: Build image
     runs-on: ubuntu-latest
 
     steps:
     - name: Check out code
       uses: actions/checkout@v2
+
+    # install kubectl
+    - uses: azure/setup-kubectl@v3 # ใช้ action นี้จาก https://github.com/marketplace/actions/kubectl-tool-installer # โดยหลักๆคือเพิ่ม install kubectl เท่านั้น # ซึ่ง action นี้ก็จะทำการ install kubectl ลง github runner machine
+      with:
+        version: 'v1.28.2'
+      id: install
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1 # ปัจจุบันจะเป็น v4 มั้งซึ่งตั้งแต่ v2 เป็นต้นไปมันให้ใช้เป็น OIDC เพื่อ connect กับ Github action ซึ่งมันยาก เลยยังใช้ v1 ไปก่อน ในการเรียน course นี้
@@ -31,10 +37,25 @@ jobs:
 
     - name: Build, tag, and push docker image to Amazon ECR
       env:
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        REPOSITORY: simplebank
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: simplebank
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . 
+        docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
       # build image แล้ว push ไปที่ ECR
+      # มี -t 2 อันนั้นก็คือใส่ 2 tag ไป
+
+    - name: Update kube config
+      run: aws eks update-kubeconfig --name simple-bank --region ap-southeast-1 # update kube config ให้ point ไปที่ Amazon EKS cluster
+      # simple-bank คือชื่อ eks cluster ของเรา
+
+    # deploy docker image จาก ECR ไปที่ EKS cluster
+    - name: Deploy image to Amazon EKS
+      # รัน deploy resources ต่างๆขึ้น cluster
+      run: |
+        kubectl apply -f eks/aws-auth.yaml
+        kubectl apply -f eks/deployment.yaml
+        kubectl apply -f eks/service.yaml
+        kubectl apply -f eks/issuer.yaml
+        kubectl apply -f eks/ingress.yaml
