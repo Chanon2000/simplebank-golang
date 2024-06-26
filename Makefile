@@ -34,4 +34,10 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/chanon2000/simplebank/db/sqlc Store
 
-.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock
+db_docs: # เพื่อ re-generate doc
+	dbdocs build doc/db.dbml
+
+db_schema: # เพื่อ re-generate schema sql code
+	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
+
+.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock db_docs db_schema
