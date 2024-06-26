@@ -1,5 +1,4 @@
 name: Run unit tests
-# เปลี่ยนชื่อเป็น test.yml เพราะจริงๆแล้ว workflow นี้เราทำมาเพื่อรัน unit test นั้นเอง
 
 on:
   push:

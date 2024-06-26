@@ -10,7 +10,7 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb simple_bank
 
-migrateup: # เป็น pass และ host เป็นของ db ที่เราบน aws
+migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
 migrateup1:

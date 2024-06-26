@@ -1,31 +1,31 @@
 apiVersion: networking.k8s.io/v1
-kind: IngressClass # ชนิตของ resources
+kind: IngressClass
 metadata:
   name: nginx
 spec:
   controller: k8s.io/ingress-nginx
---- # --- เพื่อแยก 2 ressource ใน yaml เดียวกัน
+---
 apiVersion: networking.k8s.io/v1
-kind: Ingress # กำหนดเป็น Ingress
+kind: Ingress
 metadata:
   name: sinple-bank-ingress
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt # Issuer ที่จะใช้
-spec: # กำหนด rules ต่างๆใน spec (เพื่อที่จะ route traffics ไปที่ services ที่แตกต่างกัน)
-  ingressClassName: nginx # ถ้าไม่ใส่ external address จะไม่ขึน # เพิ่ม nginx class เข้า sinple-bank ingress
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
   rules:
-  - host: "api.simple-bank-mick.com" # api.simple-bank-mick.com คือ domain ของ app เรานั้นเอง
+  - host: "api.simple-bank-mick.com"
     http:
       paths:
       - pathType: Prefix
         path: "/"
         backend:
           service:
-            name: simple-bank-api-service # service name จาก service.yaml
+            name: simple-bank-api-service
             port:
               number: 80
-  # กำหนด rule เดียวเพราะตอนนี้เรามีแค่ service เดียว
+              
   tls:
-  - hosts: # กำหนด domain name และที่ที่จะเก็บ certificate
+  - hosts:
     - api.simple-bank-mick.com
-    secretName: simple-bank-api-cert # นั้นคือ certificates จะเก็บลง file ชื่อ simple-bank-api-cert
+    secretName: simple-bank-api-cert

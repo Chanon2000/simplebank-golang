@@ -9,5 +9,3 @@ data:
       username: github-ci
       groups:
         - system:masters
-  # arn:aws:iam::668543706981:user/github-ci เอามาจาก IAM นะ
-  # ในอนาคตคุณอาจเพิ่ม user เพื่อ gant access ได้ที่ file นี้
