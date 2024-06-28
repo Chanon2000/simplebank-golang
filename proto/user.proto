@@ -1,0 +1,15 @@
+syntax = "proto3"; // เพื่อบอกว่าเราจะใช้ syntax คือ proto3 -> doc: https://protobuf.dev/programming-guides/proto3/
+
+package pb; // ประกาศ package ให้ับ proto file นี้ ซึ่ง package คือวิธีในการ group multiple proto files ของ topic เดียวกัน
+
+import "google/protobuf/timestamp.proto"; // เนื่องจาก timestamp ไม่ใช่ built-in data type ของ protobuf เลยต้อง import จาก google lib
+
+option go_package = "github.com/chanon2000/simplebank/pb"; // กำหนด option เพื่อบอกว่า Go package ใหน ที่เราต้องการจะ generate golang code
+
+message User { // กำหนด User message
+    string username = 1; // 1 คือ field number ซึ่งสำคัญมากใน proto buffer เพราะใช้เพื่อ uniquely identify field เมื่อทำการ serialize หรือ deserialize message ใน binary format 
+    string full_name = 2;
+    string email = 3;
+    google.protobuf.Timestamp password_changed_at = 4;
+    google.protobuf.Timestamp created_at = 5;
+} // คุณอาจไม่จำเป็นต้องกำหนด 1-5 เป็น field number แบบตัวอย่าง User message นี้ก็ได้นะ

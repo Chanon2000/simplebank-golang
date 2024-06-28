@@ -40,4 +40,15 @@ db_docs: # เพื่อ re-generate doc
 db_schema: # เพื่อ re-generate schema sql code
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 
-.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock db_docs db_schema
+proto: # เอามาจาก doc ของ proto แล้วเอามา update เพิ่มเติมอีกที
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+	proto/*.proto
+# rm -f pb/*.go เพื่อลบ .go files ใน pb folder ออกให้หมดก่อน regenerate (เพื่อบางครั้งเราลบ proto files เมื่อ regenerate .go ที่ได้จาก .proto file นั้นจะได้หายไป เพื่อให้ code clean ขึ้นนั้นเอง)
+# --proto_path เพื่อ point ไปที่ proto directory
+# --go_out เพื่อ point ไปที่ที่ generated golang code จะวาง
+# --go-grpc_out คือ point qrpc output
+# proto/*.proto คือ location ของ proto files โดย proto/*.proto หมายถึง .proto files ทั้งหมดใน proto folder
+
+.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock db_docs db_schema proto
