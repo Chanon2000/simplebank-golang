@@ -14,3 +14,14 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
 2.กำหนด url ที่ swagger-initializer.js ให้ point ไปที่ swagger.json ของเรา
 3.ปรับที่ main.go โดยเพื่อ serve swagger file 
 4.ทดสอบด้วยไปที่ http://localhost:8080/swagger/ ได้เลย
+
+[48. Embed static front-end files inside Golang backend server's binary]
+
+เนื่องจากถ้าเราใส่ static files ลง docker image สำหรับ deployment หลาย files มันจะทำให้ backend image มี frontend files มากเกินไป เราเลยควรทำให้มันมีแค่ 1 single binary file เท่านั้น 
+ซึ่งเราจะใช้ google statik (ซึ่งเป็น external lib) ในการทำเรื่องนี้ ตามคนสอน -> https://github.com/rakyll/statik (แต่เหมือน Go มันจะมี standard lib ให้กับเรื่องนี้แล้วนะ)
+    lib นี้เหมาะมากเรื่องเราต้องการให้ backend serve frontend code เช่น js framework ต่างๆ
+    1.`go get github.com/rakyll/statik` 
+    2.`go install github.com/rakyll/statik` (ทำไมใน doc ถึงไม่บอกให้คุณรันอันนี้นะ???)
+    3.`ใส่ statik -src=./doc/swagger -dest=./doc ที่ Makefile`
+    4.`make proto` -> ซึ่งมันก็จะ generate statik.go ขึ้นมา ซึ่งคือ binary ที่เราต้องการ
+    5.ปรับ code ที่ main.go เพื่อให้มันมา serve ที่ statik.go แทน

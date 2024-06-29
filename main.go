@@ -14,6 +14,8 @@ import (
 	"github.com/chanon2000/simplebank/util"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
+	_ "github.com/chanon2000/simplebank/doc/statik" // ตรงนี้แหละคือทำการ point ไปที่ statik.go นั้นเอง
+	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -91,8 +93,14 @@ func runGatewayServer(config util.Config, store db.Store) {
 	mux := http.NewServeMux() // mux จะทำการรับ http requests จาก clients
 	mux.Handle("/", grpcMux) // ทำการ reroute ไปที่ gRPC mux และ convert มันเป็น gRPC format
 
-	fs := http.FileServer(http.Dir("./doc/swagger")) // เพื่อ serve static files หรือ api doc ของเรา
-	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal("cannot create statik fs")
+	}
+
+	// fs := http.FileServer(http.Dir("./doc/swagger")) // เพื่อ serve static files หรือ api doc ของเรา
+	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
+	mux.Handle("/swagger/", swaggerHandler)
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
