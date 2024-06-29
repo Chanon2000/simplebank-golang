@@ -1,0 +1,205 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Simple Bank API",
+    "version": "1.2",
+    "contact": {
+      "name": "Chanon Manojit",
+      "url": "https://github.com/chanon2000",
+      "email": "chanon2000@gmail.com"
+    }
+  },
+  "tags": [
+    {
+      "name": "SimpleBank"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/create_user": {
+      "post": {
+        "summary": "rpc ชื่อ CreateUser ซึ่งเป็นประเภท Unary gRPC",
+        "operationId": "SimpleBank_CreateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbCreateUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbCreateUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    },
+    "/v1/login_user": {
+      "post": {
+        "operationId": "SimpleBank_LoginUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbLoginUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbLoginUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "pbCreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "pbCreateUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/pbUser"
+        }
+      }
+    },
+    "pbLoginUserRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "pbLoginUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/pbUser"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "accessTokenExpiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "refreshTokenExpiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "pbUser": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "title": "1 คือ field number ซึ่งสำคัญมากใน proto buffer เพราะใช้เพื่อ uniquely identify field เมื่อทำการ serialize หรือ deserialize message ใน binary format"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "passwordChangedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "กำหนด User message"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

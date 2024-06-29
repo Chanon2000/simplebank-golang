@@ -42,9 +42,11 @@ db_schema: # เพื่อ re-generate schema sql code
 
 proto: # เอามาจาก doc ของ proto แล้วเอามา update เพิ่มเติมอีกที
 	rm -f pb/*.go
+	rm -f doc/swagger/*.swagger.json
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
 	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
 	--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative \
+	--openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
 	proto/*.proto
 # rm -f pb/*.go เพื่อลบ .go files ใน pb folder ออกให้หมดก่อน regenerate (เพื่อบางครั้งเราลบ proto files เมื่อ regenerate .go ที่ได้จาก .proto file นั้นจะได้หายไป เพื่อให้ code clean ขึ้นนั้นเอง)
 # --proto_path เพื่อ point ไปที่ proto directory
@@ -53,6 +55,9 @@ proto: # เอามาจาก doc ของ proto แล้วเอาม�
 # proto/*.proto คือ location ของ proto files โดย proto/*.proto หมายถึง .proto files ทั้งหมดใน proto folder
 # --grpc-gateway... คือ เพิ่ม generate grpc gateway
 #  ซึ่งเมื่อ generate ก็จะเห็น .pb.gw.go file ซึ่งคือ generated gateway code นั้น located อยู่
+# --openapiv2_out=doc/swagger เพื่อ generate doc โดยใช้ openAPI (สร้าง doc/swagger folder ก่อนนะ ไม่งั้นมันจะ error)
+# --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank เพื่อทำการ merge files เข้า file ใหม่ชื่อ simple_bank file (merge api doc เข้าด้วยกัน)
+# ซึ่งถ้าคุณอยากจะ share ให้คุณอื่น คุณสามารถ upload json files นั้นขึ้น Swagger Hub -> https://swagger.io/
 
 evans:
 	evans --host localhost --port 9090 -r repl

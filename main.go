@@ -91,6 +91,9 @@ func runGatewayServer(config util.Config, store db.Store) {
 	mux := http.NewServeMux() // mux จะทำการรับ http requests จาก clients
 	mux.Handle("/", grpcMux) // ทำการ reroute ไปที่ gRPC mux และ convert มันเป็น gRPC format
 
+	fs := http.FileServer(http.Dir("./doc/swagger")) // เพื่อ serve static files หรือ api doc ของเรา
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
+
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
 		log.Fatal("cannot create listener:", err)
