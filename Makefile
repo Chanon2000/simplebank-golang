@@ -44,12 +44,15 @@ proto: # เอามาจาก doc ของ proto แล้วเอาม�
 	rm -f pb/*.go
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
 	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+	--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative \
 	proto/*.proto
 # rm -f pb/*.go เพื่อลบ .go files ใน pb folder ออกให้หมดก่อน regenerate (เพื่อบางครั้งเราลบ proto files เมื่อ regenerate .go ที่ได้จาก .proto file นั้นจะได้หายไป เพื่อให้ code clean ขึ้นนั้นเอง)
 # --proto_path เพื่อ point ไปที่ proto directory
 # --go_out เพื่อ point ไปที่ที่ generated golang code จะวาง
 # --go-grpc_out คือ point qrpc output
 # proto/*.proto คือ location ของ proto files โดย proto/*.proto หมายถึง .proto files ทั้งหมดใน proto folder
+# --grpc-gateway... คือ เพิ่ม generate grpc gateway
+#  ซึ่งเมื่อ generate ก็จะเห็น .pb.gw.go file ซึ่งคือ generated gateway code นั้น located อยู่
 
 evans:
 	evans --host localhost --port 9090 -r repl

@@ -2,6 +2,7 @@ syntax = "proto3";
 // ประกาศ gRPC service และเพิ่ม RPC definition ของ API ใน file นี้
 package pb;
 
+import "google/api/annotations.proto";
 import "rpc_create_user.proto";
 import "rpc_login_user.proto";
 
@@ -9,6 +10,16 @@ option go_package = "github.com/chanon2000/simplebank/pb";
 
 service SimpleBank { // service ชื่อ SimpleBank
     // rpc ชื่อ CreateUser ซึ่งเป็นประเภท Unary gRPC
-    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
-    rpc LoginUser (LoginUserRequest) returns (LoginUserResponse) {}
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
+        option (google.api.http) = {
+            post: "/v1/create_user" // v1 คือ version ของ api ซึ่งคือ best practice ที่จะมี API version ใน path
+            body: "*" 
+        };
+    }
+    rpc LoginUser (LoginUserRequest) returns (LoginUserResponse) {
+        option (google.api.http) = {
+            post: "/v1/login_user"
+            body: "*"
+        };
+    }
 }
