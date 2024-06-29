@@ -1,0 +1,3 @@
+[46. How to extract information from gRPC metadata]
+
+metadata คือ information บางส่วนเกี่ยวกับ RPC call นั้นๆ
