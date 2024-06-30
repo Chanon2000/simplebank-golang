@@ -19,6 +19,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/source/file" // doc ของ migrate บอกให้ import // เนื่องจากเราใช้ file schema เลยใส่ /file
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // doc ของ migrate บอกให้ import // เพียงเพื่อ point ไปที่ database/postgres subpackage ของ migrate module
 )
 
 
@@ -34,11 +37,29 @@ func main() {
 		log.Fatal("connot connect to db:", err)
 	}
 
+	// เราจะแก้ด้วยการเปลี่ยนมารัน migration ที่ main function ตรงนี้แทน  // รัน migration ใน golang สามารถดูได้ใน doc
+	// run db migration
+	runDBMigration(config.MigrationURL, config.DBSource)
+
+
 	store := db.NewStore(conn)
 	go runGatewayServer(config, store) // เราจะต้องทำการ serve ทั้ง gRPC และ HTTP requests ในเวลาเดียวกัน แต่เราไม่สามารถเรียกทั้ง 2 function ใน go routine เดียวกันได้ เพราะ first server มันจะ block อีก server นึง
 	// ซึ่งเราก็แค่ใส่ go keyword เพื่อให้ runGatewayServer รันในอีก go routine นั้นเอง
 	runGrpcServer(config, store)
 	// ซึ่งก็จะทำให้ทั้ง gRPC server และ HTTP server นั้น start ขึ้นมาพร้อมกันนั้นเอง
+}
+
+func runDBMigration(migrationURL string, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal("cannot create new migrate instance", err)
+	}
+
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange { // err != migrate.ErrNoChange คือถ้า error คือ no change ก็จะถือให้ success ไปเลย ไม่ต้องเข้า error ตรงนี้
+		log.Fatal("failed to run migrate up", err)
+	}
+
+	log.Println("db migrated successfully")
 }
 
 // เอาไว้รัน gRPC server

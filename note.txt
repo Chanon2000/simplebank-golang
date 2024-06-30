@@ -29,3 +29,8 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
 [49. Validate gRPC parameters and send human/machine friendly response]
 
 มันจะทำให้ error message นั้นอ่านเข้าใจและใช้งานได้ง่ายขึ้นนั้นเอง
+
+[50. Run DB migrations directly inside Golang code]
+
+เนื่องจากเราพึงมาเห็นถ้าเรารัน `docker-compose up` นั้นจะเกิด error ต่อ database ไม่ได้
+โดยเกิดจากที่ start.sh มีการรัน `source /app/app.env` ซึ่งใน app.env มันมี DB_SOURCE ที่แทน postgres เป็น localhost เลยทำให้ app มันไม่ต่อ postgres ใน docker
