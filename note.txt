@@ -34,3 +34,9 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
 
 เนื่องจากเราพึงมาเห็นถ้าเรารัน `docker-compose up` นั้นจะเกิด error ต่อ database ไม่ได้
 โดยเกิดจากที่ start.sh มีการรัน `source /app/app.env` ซึ่งใน app.env มันมี DB_SOURCE ที่แทน postgres เป็น localhost เลยทำให้ app มันไม่ต่อ postgres ใน docker
+
+[53. Add authorization to protect gRPC API]
+
+จริงๆแล้วคุณสามารถ implement authorization logic โดยใช้ gRPC intercepter แต่ถ้าทำแบบนั้นมันจะไม่ทำงานใน HTTP gateway ซึ่งทำให้คุณต้อง implement HTTP middleware แยกออกมา
+
+ซึ่งในครั้งนี้คุณ implement logic ใน RPC handler method มันเลยทำงานได้ดีทั้งใน gRPC และ HTTP gateway server
