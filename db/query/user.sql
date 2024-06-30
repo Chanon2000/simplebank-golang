@@ -33,8 +33,11 @@ SET
 
   -- วิธีที่ 2 : ใช้ COALESCE วิธีที่ 1 (อ่านเพิ่มเติมของ COALESCE ที่ doc ของ sqlc)
   hashed_password = COALESCE(sqlc.narg(hashed_password), hashed_password),
+  password_changed_at = COALESCE(sqlc.narg(password_changed_at), password_changed_at), -- narg ย่อมาจาก nullable argument
   full_name = COALESCE(sqlc.narg(full_name), full_name),
   email = COALESCE(sqlc.narg(email), email)
 WHERE
   username = @username -- เนื่องจากถ้าเราใช้ @ ใช้การกำหนด parameter เราต้องใช้มันในทุก parameter เลย ทำให้ตรงนี้เราเลยกำหนดเป็น @username ด้วยนั้นเอง
 RETURNING *;
+
+-- ทุกครั้งที่รัน make sqlc อาจลืมรัน make mock ต่อด้วย
