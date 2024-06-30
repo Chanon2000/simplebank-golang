@@ -8,7 +8,9 @@ import (
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
+	"github.com/chanon2000/simplebank/val"
 	"github.com/lib/pq"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -16,6 +18,10 @@ import (
 // คือทำการ implement CreateUser ใน server ของเราเอง // เขียน implement ของ CreateUser จริงๆที่นี่แหละ
 func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	// จะเห็นว่าใน Gin นั้นเราต้องทำการ bind input parameter ลง request object ด้วยตัวเอง แต่ใน gRPC นั้นไม่ต้อง เพราะมันจัดการให้เราแล้วใน framework
+	violations := validateCreateUserRequest(req) // validate input fields ของ CreateUser RPC
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
 
 	hashedPassword, err := util.HashPassword(req.GetPassword()) // ใช้ GetPassword() ดีกว่า เรียก req.Password ตรงๆเพราะว่ามันทำ safety check ก่อนด้วย
 	if err != nil {
@@ -46,4 +52,22 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	return rsp, nil
 }
 
+func validateCreateUserRequest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := val.ValidateUsername(req.GetUsername()); err != nil {
+		violations = append(violations, fieldViolation("username", err))
+	}
 
+	if err := val.ValidatePassword(req.GetPassword()); err != nil {
+		violations = append(violations, fieldViolation("password", err))
+	}
+
+	if err := val.ValidateFullName(req.GetFullName()); err != nil {
+		violations = append(violations, fieldViolation("full_name", err))
+	}
+
+	if err := val.ValidateEmail(req.GetEmail()); err != nil {
+		violations = append(violations, fieldViolation("email", err))
+	}
+
+	return violations
+}

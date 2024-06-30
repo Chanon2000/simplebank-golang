@@ -8,7 +8,8 @@ import (
 	"github.com/chanon2000/simplebank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10" // เราจะไม่ใช้ validator อันนี้กับ gRPC // และจริงๆแล้ว error message ที่ได้จาก package นี้นั้นมันก็ดูไม่ค่อย human-friendly และ computer-friendly เท่าไหร่
+	// เช่น "error": "Key: 'createUserRequest.Username' Error:Field validation for 'Username' failed on the 'alphanum' tag" ซึ่งถ้าเราจะหาว่า fields ใหน error ใน message นี้ คุณต้องทำ analysis บน message ถึงจะรู้
 )
 
 // Server serves HTTP requests for our banking service.

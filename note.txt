@@ -25,3 +25,7 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
     3.`ใส่ statik -src=./doc/swagger -dest=./doc ที่ Makefile`
     4.`make proto` -> ซึ่งมันก็จะ generate statik.go ขึ้นมา ซึ่งคือ binary ที่เราต้องการ
     5.ปรับ code ที่ main.go เพื่อให้มันมา serve ที่ statik.go แทน
+
+[49. Validate gRPC parameters and send human/machine friendly response]
+
+มันจะทำให้ error message นั้นอ่านเข้าใจและใช้งานได้ง่ายขึ้นนั้นเอง
