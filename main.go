@@ -3,38 +3,47 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
+	"os"
+
+	// "log"
 	"net"
 	"net/http"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log" // เปลี่ยนมาใช้ zerolog แทน // ใช้ zerolog ในการเขียน logs ให้หมด
+
 	"github.com/chanon2000/simplebank/api"
 	db "github.com/chanon2000/simplebank/db/sqlc"
+	_ "github.com/chanon2000/simplebank/doc/statik" // ตรงนี้แหละคือทำการ point ไปที่ statik.go นั้นเอง
 	"github.com/chanon2000/simplebank/gapi"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // doc ของ migrate บอกให้ import // เพียงเพื่อ point ไปที่ database/postgres subpackage ของ migrate module
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // doc ของ migrate บอกให้ import // เนื่องจากเราใช้ file schema เลยใส่ /file
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
-	_ "github.com/chanon2000/simplebank/doc/statik" // ตรงนี้แหละคือทำการ point ไปที่ statik.go นั้นเอง
 	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/source/file" // doc ของ migrate บอกให้ import // เนื่องจากเราใช้ file schema เลยใส่ /file
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // doc ของ migrate บอกให้ import // เพียงเพื่อ point ไปที่ database/postgres subpackage ของ migrate module
 )
 
 
 func main() {
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal("connot load config:", err)
+		log.Fatal().Err(err).Msg("cannot create server")
+	}
+
+	if config.Environment == "development" { // ย้ายมาเขียนล่าง LoadConfig เพราะเราจะ check config.Environment ว่าอยู่ env ใหน แล้วค่อยสั่ง log.Output
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}) // ใส่ line นี้ไว้ที่บนสุด เพื่อให้ logs ที่แสดงที่ server นั้นอ่านง่ายขึ้น (ศึกษาเพิ่มเติมได้ที่ doc ของ zerolog)
 	}
 	
 	println("config.DBDriver", config.DBDriver)
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal("connot connect to db:", err)
+		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
 	// เราจะแก้ด้วยการเปลี่ยนมารัน migration ที่ main function ตรงนี้แทน  // รัน migration ใน golang สามารถดูได้ใน doc
@@ -52,43 +61,44 @@ func main() {
 func runDBMigration(migrationURL string, dbSource string) {
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
-		log.Fatal("cannot create new migrate instance", err)
+		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
 
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange { // err != migrate.ErrNoChange คือถ้า error คือ no change ก็จะถือให้ success ไปเลย ไม่ต้องเข้า error ตรงนี้
-		log.Fatal("failed to run migrate up", err)
+		log.Fatal().Err(err).Msg("failed to run migrate up")
 	}
 
-	log.Println("db migrated successfully")
+	log.Info().Msg("db migrated successfully")
 }
 
 // เอาไว้รัน gRPC server
 func runGrpcServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create server:", err)
+		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	grpcServer := grpc.NewServer()
+	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger) // เนื่องจาก gRPC ของเราเป็นประเภท unary
+	grpcServer := grpc.NewServer(gprcLogger) // ใส่ gprcLogger ลง NewServer คือการเพิ่ม interceptor เข้า gRPC server
 	pb.RegisterSimpleBankServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", config.GRPCServerAddress) // "tcp" คือ protocol
 	if err != nil {
-		log.Fatal("cannot create listener:", err)
+		log.Fatal().Err(err).Msg("cannot create listener")
 	}
 
-	log.Printf("start gRPC server at %s", listener.Addr().String())
+	log.Info().Msgf("start gRPC server at %s", listener.Addr().String())
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("cannot start gRPC server:", err)
+		log.Fatal().Err(err).Msg("cannot start gRPC server")
 	}
 }
 
 func runGatewayServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create server:", err)
+		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
@@ -108,7 +118,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server) // RegisterSimpleBankHandlerServer คือ func ที่ protoc generate มาให้
 	if err != nil {
-		log.Fatal("cannot register handler server:", err)
+		log.Fatal().Err(err).Msg("cannot register handler server")
 	}
 
 	mux := http.NewServeMux() // mux จะทำการรับ http requests จาก clients
@@ -116,7 +126,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	statikFS, err := fs.New()
 	if err != nil {
-		log.Fatal("cannot create statik fs")
+		log.Fatal().Err(err).Msg("cannot create statik fs")
 	}
 
 	// fs := http.FileServer(http.Dir("./doc/swagger")) // เพื่อ serve static files หรือ api doc ของเรา
@@ -125,13 +135,13 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
-		log.Fatal("cannot create listener:", err)
+		log.Error().Err(err).Msg("cannot create listener:")
 	}
 
 	log.Printf("start HTTP gateway server at %s", listener.Addr().String())
 	err = http.Serve(listener, mux)
 	if err != nil {
-		log.Fatal("cannot start HTTP gateway server:", err)
+		log.Error().Err(err).Msg("cannot start HTTP gateway server:")
 	}
 }
 
@@ -139,11 +149,11 @@ func runGatewayServer(config util.Config, store db.Store) {
 func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create server:", err)
+		log.Error().Err(err).Msg("cannot create server:")
 	}
 
 	err = server.Start(config.HTTPServerAddress)
 	if err != nil {
-		log.Fatal("cannot start server:", err)
+		log.Error().Err(err).Msg("cannot start server:")
 	}
 }

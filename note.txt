@@ -40,3 +40,16 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
 จริงๆแล้วคุณสามารถ implement authorization logic โดยใช้ gRPC intercepter แต่ถ้าทำแบบนั้นมันจะไม่ทำงานใน HTTP gateway ซึ่งทำให้คุณต้อง implement HTTP middleware แยกออกมา
 
 ซึ่งในครั้งนี้คุณ implement logic ใน RPC handler method มันเลยทำงานได้ดีทั้งใน gRPC และ HTTP gateway server
+
+[54. Write structured logs for gRPC APIs]
+
+เนื่องจากเมื่อเราส่ง gRPC request มาที่ server แล้ว มันไม่มี logs ถูกเขียนขึ้นมา ครั้งนี้เราเลยจะเรียนวิธีสร้าง log ของ gRPC requests โดยใช้ gRPC intercepter
+
+ซึ่ง gRPC intercepter จริงๆแล้วก็คือ function ที่จะถูกเขียนในทุกๆ gRPC request
+
+สิ่งที่คุณมีใน logs ได้แก่
+    - gRPC method?
+    - Request duration?
+    - Response status code?
+    - JSON structued
+    - Easily parsed and indexed โดย log-management tools เช่น Logstash, Fluentd, Grafana loki
