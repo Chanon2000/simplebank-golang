@@ -1,0 +1,12 @@
+[56. Implement background worker with Redis task queue]
+
+ก่อนหน้านี้เรา implement แต่ synchronous APIs นั้นคือ เมื่อ client ส่ง request ให้ server นั้น request ก็จะถูก processed ทันทีโดย server แล้วก็ return result ไปที่ client ทันที ซึ่งเหมาะกับ use case ส่วนใหญ่
+แต่ใน real-world project นั้นบางครั้งมันไม่สามารถ process request ทันทีได้ บางครั้งอาจเพราะมันต้องใช้เวลานานหว่าจะ complete ซึ่งนั้นอาจ force client ให้รอ ซึ่งเราอาจไม่ต้องการเกิด client รอ
+
+เราเลยต้องการ mechanism ที่จะ process task แบบ asynchronously
+    1 ซึ่ง solution นึงคือใช้ Go routines เพื่อ process task ใน background ซึ่งถือว่าง่ายต่อการ implement แต่ข้อเสียของวิธีนี้คือ tasks มันอยู่ใน process's memory ดังนั้นถ้า server down ขึ้นมา unprocessed tasks ต่างๆจะหายไป
+    2 อีกวิธีนึงนั้นก็คือส่ง tasks ไปที่ queue ของ message broker นั้นเอง ซึ่ง broker ที่นิยมอันนึงก็คือ Redis โดยมันจะ store data ลงทั้ง memory และ persistent storage
+        และเมื่อ running production ด้วย Redis sentinel หรือ Redis cluster มันก็จะทำให้เรามั้นใจได้ว่า message broker ของเรามีความพร้อมใช้งานสูง และ tasks ที่ส่งเข้า queue จะไม่มีทางหายไป
+        เราจะใช้ในการ "send verification email" use case ใน course นี้
+
+        โดยเราจะใช้ package ชื่อ asynq -> https://github.com/hibiken/asynq ซึ่งมันทั้ง simple, reliable, efficient ในการ distributed task queue library ซึ่งทำให้เรา enqueue และ process tasks asynchronously โดยใช้ background workers
