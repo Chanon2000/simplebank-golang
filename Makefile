@@ -34,13 +34,13 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/chanon2000/simplebank/db/sqlc Store
 
-db_docs: # เพื่อ re-generate doc
+db_docs:
 	dbdocs build doc/db.dbml
 
-db_schema: # เพื่อ re-generate schema sql code
+db_schema:
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 
-proto: # เอามาจาก doc ของ proto แล้วเอามา update เพิ่มเติมอีกที
+proto:
 	rm -f pb/*.go
 	rm -f doc/swagger/*.swagger.json
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
@@ -49,17 +49,6 @@ proto: # เอามาจาก doc ของ proto แล้วเอาม�
 	--openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
 	proto/*.proto
 	statik -src=./doc/swagger -dest=./doc
-# rm -f pb/*.go เพื่อลบ .go files ใน pb folder ออกให้หมดก่อน regenerate (เพื่อบางครั้งเราลบ proto files เมื่อ regenerate .go ที่ได้จาก .proto file นั้นจะได้หายไป เพื่อให้ code clean ขึ้นนั้นเอง)
-# --proto_path เพื่อ point ไปที่ proto directory
-# --go_out เพื่อ point ไปที่ที่ generated golang code จะวาง
-# --go-grpc_out คือ point qrpc output
-# proto/*.proto คือ location ของ proto files โดย proto/*.proto หมายถึง .proto files ทั้งหมดใน proto folder
-# --grpc-gateway... คือ เพิ่ม generate grpc gateway
-#  ซึ่งเมื่อ generate ก็จะเห็น .pb.gw.go file ซึ่งคือ generated gateway code นั้น located อยู่
-# --openapiv2_out=doc/swagger เพื่อ generate doc โดยใช้ openAPI (สร้าง doc/swagger folder ก่อนนะ ไม่งั้นมันจะ error)
-# --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank เพื่อทำการ merge files เข้า file ใหม่ชื่อ simple_bank file (merge api doc เข้าด้วยกัน)
-# ซึ่งถ้าคุณอยากจะ share ให้คุณอื่น คุณสามารถ upload json files นั้นขึ้น Swagger Hub -> https://swagger.io/
-# statik -src=./doc/swagger -dest=./doc เพื่อ generate statik binary package file จาก swagger template
 
 evans:
 	evans --host localhost --port 9090 -r repl

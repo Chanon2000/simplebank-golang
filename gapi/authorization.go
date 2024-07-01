@@ -15,12 +15,12 @@ const (
 )
 
 func (server *Server) authorizeUser(ctx context.Context) (*token.Payload, error) {
-	md, ok := metadata.FromIncomingContext(ctx) // FromIncomingContext เพื่อเอา data จาก context
+	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("missing metadata")
 	}
 
-	values := md.Get(authorizationHeader) // แม้คุณจะใส่ Authorization นั้น Get มันก็จะ convert เป็น lowcase ให้เอง
+	values := md.Get(authorizationHeader)
 	if len(values) == 0 {
 		return nil, fmt.Errorf("missing authorization header")
 	}
@@ -43,13 +43,4 @@ func (server *Server) authorizeUser(ctx context.Context) (*token.Payload, error)
 	}
 
 	return payload, nil
-}
-
-func hasPermission(userRole string, accessibleRoles []string) bool {
-	for _, role := range accessibleRoles {
-		if userRole == role {
-			return true
-		}
-	}
-	return false
 }

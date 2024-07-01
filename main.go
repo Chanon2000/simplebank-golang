@@ -5,22 +5,21 @@ import (
 	"database/sql"
 	"os"
 
-	// "log"
 	"net"
 	"net/http"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log" // เปลี่ยนมาใช้ zerolog แทน // ใช้ zerolog ในการเขียน logs ให้หมด
+	"github.com/rs/zerolog/log"
 
 	"github.com/chanon2000/simplebank/api"
 	db "github.com/chanon2000/simplebank/db/sqlc"
-	_ "github.com/chanon2000/simplebank/doc/statik" // ตรงนี้แหละคือทำการ point ไปที่ statik.go นั้นเอง
+	_ "github.com/chanon2000/simplebank/doc/statik"
 	"github.com/chanon2000/simplebank/gapi"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // doc ของ migrate บอกให้ import // เพียงเพื่อ point ไปที่ database/postgres subpackage ของ migrate module
-	_ "github.com/golang-migrate/migrate/v4/source/file"       // doc ของ migrate บอกให้ import // เนื่องจากเราใช้ file schema เลยใส่ /file
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
@@ -36,8 +35,8 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	if config.Environment == "development" { // ย้ายมาเขียนล่าง LoadConfig เพราะเราจะ check config.Environment ว่าอยู่ env ใหน แล้วค่อยสั่ง log.Output
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr}) // ใส่ line นี้ไว้ที่บนสุด เพื่อให้ logs ที่แสดงที่ server นั้นอ่านง่ายขึ้น (ศึกษาเพิ่มเติมได้ที่ doc ของ zerolog)
+	if config.Environment == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 	
 	println("config.DBDriver", config.DBDriver)
@@ -46,16 +45,11 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	// เราจะแก้ด้วยการเปลี่ยนมารัน migration ที่ main function ตรงนี้แทน  // รัน migration ใน golang สามารถดูได้ใน doc
-	// run db migration
 	runDBMigration(config.MigrationURL, config.DBSource)
 
-
 	store := db.NewStore(conn)
-	go runGatewayServer(config, store) // เราจะต้องทำการ serve ทั้ง gRPC และ HTTP requests ในเวลาเดียวกัน แต่เราไม่สามารถเรียกทั้ง 2 function ใน go routine เดียวกันได้ เพราะ first server มันจะ block อีก server นึง
-	// ซึ่งเราก็แค่ใส่ go keyword เพื่อให้ runGatewayServer รันในอีก go routine นั้นเอง
+	go runGatewayServer(config, store)
 	runGrpcServer(config, store)
-	// ซึ่งก็จะทำให้ทั้ง gRPC server และ HTTP server นั้น start ขึ้นมาพร้อมกันนั้นเอง
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
@@ -64,26 +58,25 @@ func runDBMigration(migrationURL string, dbSource string) {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
 
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange { // err != migrate.ErrNoChange คือถ้า error คือ no change ก็จะถือให้ success ไปเลย ไม่ต้องเข้า error ตรงนี้
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal().Err(err).Msg("failed to run migrate up")
 	}
 
 	log.Info().Msg("db migrated successfully")
 }
 
-// เอาไว้รัน gRPC server
 func runGrpcServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger) // เนื่องจาก gRPC ของเราเป็นประเภท unary
-	grpcServer := grpc.NewServer(gprcLogger) // ใส่ gprcLogger ลง NewServer คือการเพิ่ม interceptor เข้า gRPC server
+	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(gprcLogger)
 	pb.RegisterSimpleBankServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
-	listener, err := net.Listen("tcp", config.GRPCServerAddress) // "tcp" คือ protocol
+	listener, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create listener")
 	}
@@ -108,28 +101,26 @@ func runGatewayServer(config util.Config, store db.Store) {
 		UnmarshalOptions: protojson.UnmarshalOptions{
 			DiscardUnknown: true,
 		},
-		// เพื่อ enable snake case ให้กับ gRPC gateway server
 	})
 
-	grpcMux := runtime.NewServeMux(jsonOption) // NewServeMux มาจาก runtime package ซึ่งคือ sub-package ของ grpc-gateway v2
+	grpcMux := runtime.NewServeMux(jsonOption)
 
-	ctx, cancel := context.WithCancel(context.Background()) // สร้าง context
-	defer cancel() // cancel context เพื่อป้องกันไม่ให้ system ทำงานที่ไม่จำเป็น
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server) // RegisterSimpleBankHandlerServer คือ func ที่ protoc generate มาให้
+	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot register handler server")
 	}
 
-	mux := http.NewServeMux() // mux จะทำการรับ http requests จาก clients
-	mux.Handle("/", grpcMux) // ทำการ reroute ไปที่ gRPC mux และ convert มันเป็น gRPC format
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
 
 	statikFS, err := fs.New()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create statik fs")
 	}
 
-	// fs := http.FileServer(http.Dir("./doc/swagger")) // เพื่อ serve static files หรือ api doc ของเรา
 	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
 	mux.Handle("/swagger/", swaggerHandler)
 
@@ -139,14 +130,13 @@ func runGatewayServer(config util.Config, store db.Store) {
 	}
 
 	log.Info().Msgf("start HTTP gateway server at %s", listener.Addr().String())
-	handler := gapi.HttpLogger(mux) // wrap mux ด้วย gapi.HttpLogger ก่อน ซึ่งก็จะได้เป็น HTTP handler ที่มี logger middleware แล้วค่อย Serve
+	handler := gapi.HttpLogger(mux)
 	err = http.Serve(listener, handler)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot start HTTP gateway server:")
 	}
 }
 
-// เอาไว้รัน Gin server
 func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {

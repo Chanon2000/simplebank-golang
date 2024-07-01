@@ -11,7 +11,7 @@ func convertUser(user db.User) *pb.User {
 		Username:          user.Username,
 		FullName:          user.FullName,
 		Email:             user.Email,
-		PasswordChangedAt: timestamppb.New(user.PasswordChangedAt), // ใช้ timestamppb เพื่อ convert timestamp type เนื่องจากใน protobuf นั้นมี timestamp type ที่ไม่เหมือน Golang's Time type 
+		PasswordChangedAt: timestamppb.New(user.PasswordChangedAt),
 		CreatedAt:         timestamppb.New(user.CreatedAt),
 	}
 }

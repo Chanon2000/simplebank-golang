@@ -121,7 +121,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken( // refreshToken จะเป็น encrypted token string
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
 		user.Username,
 		server.config.RefreshTokenDuration,
 	)
@@ -134,7 +134,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		ID:           refreshPayload.ID,
 		Username:     user.Username,
 		RefreshToken: refreshToken,
-		UserAgent:    ctx.Request.UserAgent(), // ใช้ UserAgent จาก ctx.Request นั้นเอง // นี้คืออีกสิ่งที่ทำให้เห็นว่าใช้ Gin แล้วทำให้งานง่ายขึ้นนะ
+		UserAgent:    ctx.Request.UserAgent(),
 		ClientIp:     ctx.ClientIP(),
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,

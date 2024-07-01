@@ -6,9 +6,9 @@ import "user.proto";
 
 option go_package = "github.com/chanon2000/simplebank/pb";
 
-message UpdateUserRequest { // นั้นคือเมื่อจะ update user ต้องใส่ username เสมอ แต่อีก 3 fields ที่เหลือจะเข้ามา update หรือไม่ก็ได้
+message UpdateUserRequest {
     string username = 1;
-    optional string full_name = 2; // optional เพื่อบอกว่า fields นี้ไม่บังคับใส่ value
+    optional string full_name = 2;
     optional string email = 3;
     optional string password = 4;
 }

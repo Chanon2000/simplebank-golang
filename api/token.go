@@ -24,8 +24,8 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	refreshPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken) // จะเห็นว่าการใช้ PASETO เป็น refresh token ในครั้งนี้ทำให้ server ไม่จำเป็นต้อง query database เพื่อ VerifyToken ซึ่งช่วยลด load ให้กับ database อย่างมาก
-	if err != nil { // ถ้า err ไม่ nil นั้นหมายความว่า token นั้น invalid หรือ expired
+	refreshPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
+	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}

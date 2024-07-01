@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	grpcGatewayUserAgentHeader = "grpcgateway-user-agent" // เก็บชื่อ key ของ header ลงตัวแปร
+	grpcGatewayUserAgentHeader = "grpcgateway-user-agent"
 	userAgentHeader            = "user-agent"
 	xForwardedForHeader        = "x-forwarded-for"
 )
@@ -18,15 +18,15 @@ type Metadata struct {
 	ClientIP  string
 }
 
-func (server *Server) extractMetadata(ctx context.Context) *Metadata { //  ทำการ extract metadata จาก context
+func (server *Server) extractMetadata(ctx context.Context) *Metadata {
 	mtdt := &Metadata{}
 
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if userAgents := md.Get(grpcGatewayUserAgentHeader); len(userAgents) > 0 { // เอา userAgents จาก grpc request
+		if userAgents := md.Get(grpcGatewayUserAgentHeader); len(userAgents) > 0 {
 			mtdt.UserAgent = userAgents[0]
 		}
 
-		if userAgents := md.Get(userAgentHeader); len(userAgents) > 0 { // เอา userAgents จาก http request
+		if userAgents := md.Get(userAgentHeader); len(userAgents) > 0 {
 			mtdt.UserAgent = userAgents[0]
 		}
 
@@ -35,7 +35,7 @@ func (server *Server) extractMetadata(ctx context.Context) *Metadata { //  ท�
 		}
 	}
 
-	if p, ok := peer.FromContext(ctx); ok { // peer.FromContext เพื่อเอา gRPC client's ip address // ซึ่งต้องใช้ peer เพื่อเอา ip จาก gRPC
+	if p, ok := peer.FromContext(ctx); ok {
 		mtdt.ClientIP = p.Addr.String()
 	}
 

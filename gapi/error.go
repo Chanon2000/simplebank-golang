@@ -1,5 +1,5 @@
 package gapi
-// แยก fieldViolation, invalidArgumentError ออกมาเป็นอีก file เพราะใช้หลายที่
+
 import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"

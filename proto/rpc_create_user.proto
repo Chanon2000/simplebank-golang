@@ -1,5 +1,5 @@
 syntax = "proto3";
-// กำหนด request response data structure ของ create user API ใน file นี้
+
 package pb;
 
 import "user.proto";

@@ -1,5 +1,5 @@
 package val
-// เป็น package สำหรับ inpur data validation ไปเลย
+
 import (
 	"fmt"
 	"net/mail"
@@ -47,7 +47,7 @@ func ValidateEmail(value string) error {
 	if err := ValidateString(value, 3, 200); err != nil {
 		return err
 	}
-	if _, err := mail.ParseAddress(value); err != nil { // ใช้ mail.ParseAddress เพื่อ check value เท่านั้น
+	if _, err := mail.ParseAddress(value); err != nil {
 		return fmt.Errorf("is not a valid email address")
 	}
 	return nil

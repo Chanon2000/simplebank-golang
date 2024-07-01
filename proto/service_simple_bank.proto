@@ -1,19 +1,19 @@
 syntax = "proto3";
-// ประกาศ gRPC service และเพิ่ม RPC definition ของ API ใน file นี้
+
 package pb;
 
 import "google/api/annotations.proto";
 import "rpc_create_user.proto";
 import "rpc_update_user.proto";
 import "rpc_login_user.proto";
-import "protoc-gen-openapiv2/options/annotations.proto"; // อันนี้ให้ไป copy จาก repo ของ grpc-gateway (https://github.com/grpc-ecosystem/grpc-gateway/tree/main/protoc-gen-openapiv2/options โดย copy files ในนี้ให้หมดเลย โดยในที่นี้เอามาแค่ 2 file คือ annotations.proto, openapiv2.proto)
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/chanon2000/simplebank/pb";
 
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = { // เพิ่มเติมหรือปรับแต่ง api doc ของเรา
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
         title: "Simple Bank API";
-        version: "1.2"; // เป็น version ของ api เรานะ เรากำหนดเอง // ความจริงทุกครั้งที่มีการแก้ไข api ความมา update vaersion ตรงนี้เพื่อให้เข้าใจด้วยนะ
+        version: "1.2";
         contact: {
             name: "Chanon Manojit";
             url: "https://github.com/chanon2000";
@@ -22,11 +22,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = { // เ�
     };
 };
 
-service SimpleBank { // service ชื่อ SimpleBank
-    // rpc ชื่อ CreateUser ซึ่งเป็นประเภท Unary gRPC
+service SimpleBank {
     rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
         option (google.api.http) = {
-            post: "/v1/create_user" // v1 คือ version ของ api ซึ่งคือ best practice ที่จะมี API version ใน path
+            post: "/v1/create_user"
             body: "*" 
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
