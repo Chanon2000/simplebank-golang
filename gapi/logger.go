@@ -2,6 +2,7 @@ package gapi // เราจะ implement logger interceptor ใน file นี�
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/rs/zerolog/log" // เราจะใช้ zerolog เพื่อเขียน log ใน json format
@@ -47,4 +48,47 @@ func GrpcLogger( // definition ของ function นี้ นั้นเอ�
 		Msg("received a gRPC request")
 
 	return result, err
+}
+
+type ResponseRecorder struct {
+	http.ResponseWriter
+	StatusCode int
+	Body       []byte
+}
+
+// override function จาก http.ResponseWriter ในที่นี้คือ WriteHeader และ Write
+func (rec *ResponseRecorder) WriteHeader(statusCode int) {
+	rec.StatusCode = statusCode // เพื่อจะได้เขียน statusCode เข้า  StatusCode field ใน ResponseRecorder struct เองได้
+	rec.ResponseWriter.WriteHeader(statusCode) // เรียก original WriteHeader จาก ResponseWriter ต่อ
+}
+
+func (rec *ResponseRecorder) Write(body []byte) (int, error) {
+	rec.Body = body
+	return rec.ResponseWriter.Write(body)
+}
+
+
+func HttpLogger(handler http.Handler) http.Handler { // ซึ่งจะเป็น HTTP logger middleware function แล้วเพิ่มเข้า gRPC gateway server
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) { // 
+		startTime := time.Now()
+		rec := &ResponseRecorder{
+			ResponseWriter: res,
+			StatusCode:     http.StatusOK,
+		}
+		handler.ServeHTTP(rec, req) // ServeHTTP เพื่อ forward request ไปที่ handler function ต่อ เพื่อ processed
+		duration := time.Since(startTime)
+
+		logger := log.Info()
+		if rec.StatusCode != http.StatusOK {
+			logger = log.Error().Bytes("body", rec.Body)
+		}
+
+		logger.Str("protocol", "http").
+			Str("method", req.Method).
+			Str("path", req.RequestURI). // เนื่องจากเป็น http request เลยต้องมี path
+			Int("status_code", rec.StatusCode).
+			Str("status_text", http.StatusText(rec.StatusCode)). // ใช้ StatusText เพื่อ convert rec.StatusCode ให้เป็น human-friendly text
+			Dur("duration", duration).
+			Msg("received a HTTP request")
+	})
 }

@@ -53,3 +53,7 @@ doc: https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#6-optiona
     - Response status code?
     - JSON structued
     - Easily parsed and indexed โดย log-management tools เช่น Logstash, Fluentd, Grafana loki
+
+[55. How to write HTTP logger middleware in Go]
+
+เนื่องจากถ้าเราส่ง HTTP request คุณจะยังไม่เห็น logs print ที่ console เลยจะทำให้ lecture นี้ ซึ่งเหตุผลที่ log ไม่ขึ้นเพราะว่า runGatewayServer นั้นเรียก RegisterSimpleBankHandlerServer ตรงๆ ทำให้มันไม่ผ่าน gRPC interceptor

@@ -135,11 +135,12 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
-		log.Error().Err(err).Msg("cannot create listener:")
+		log.Fatal().Err(err).Msg("cannot create listener:")
 	}
 
-	log.Printf("start HTTP gateway server at %s", listener.Addr().String())
-	err = http.Serve(listener, mux)
+	log.Info().Msgf("start HTTP gateway server at %s", listener.Addr().String())
+	handler := gapi.HttpLogger(mux) // wrap mux ด้วย gapi.HttpLogger ก่อน ซึ่งก็จะได้เป็น HTTP handler ที่มี logger middleware แล้วค่อย Serve
+	err = http.Serve(listener, handler)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot start HTTP gateway server:")
 	}
