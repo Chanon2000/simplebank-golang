@@ -32,3 +32,9 @@ Error ที่ขึ้นคือ
 (เนื่องจากคุณกด stop ใน docker desktop ถ้ากด Pause นั้น error นี้จะไม่ขึ้นนะ แต่ถ้ากด stop นัั้นแหละ error ถึงจะขึ้น)
 
 แต่เมื่อคุณกดรัน postgres db อีกครั้ง task processor ก็จะรัน task จนสำเร็จทันทีเลย
+
+[60. Some delay might be good for your async tasks]
+
+ลองปรับ code ให้ไม่ทำการ delay เพื่อ process task เพื่อดูว่า การ delay task นั้นมันสำคัญแค่ใหน
+
+เนื่องจาก transactions ในงานจริงนั้นมันไม่ได้ commit ในเวลาอันรวดเร็วเสมอไป เพราะบางครั้งมันก็ช้า ตามจำนวน traffic ที่เข้ามาใน system เรา เป็นต้น

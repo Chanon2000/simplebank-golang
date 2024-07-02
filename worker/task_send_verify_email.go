@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -45,10 +44,11 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 
 	user, err := processor.store.GetUser(ctx, payload.Username)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("user doesn't exist: %w", asynq.SkipRetry)
-		}
-		return fmt.Errorf("failed to get user: %w", err)
+		// เนื่องจากบางครั้งถึงแม้ว่าเราจะกำหนด delay ไปตั้ง 10s แต่บาง case อาจจะไม่พอ เราเลยควรกำหนดให้มันสามารถ retry ได้
+		// if err == sql.ErrNoRows {
+		// 	return fmt.Errorf("user doesn't exist: %w", asynq.SkipRetry) // ในที่นี้คือ ถ้ามันหา record ไม่เจอ เราจะทำการ return asynq.SkipRetry error เลยทันที ทำให้้มันไม่มีการ retry
+		// }
+		return fmt.Errorf("failed to get user: %w", err) // return error ตรงนี้ไม่มี asynq.SkipRetry มันเลยจะทำการ retry หลังจาก fail ตรงนี้
 	}
 
 	// TODO: send email to user (ยังไม่ทำตอนนี้)

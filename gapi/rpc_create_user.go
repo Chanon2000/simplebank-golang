@@ -43,7 +43,7 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 			}
 			opts := []asynq.Option{
 				asynq.MaxRetry(10), // retry ไม่เกิน 10 ครั้งถ้ามันเกิด fails
-				asynq.ProcessIn(10 * time.Second), // คือเพิ่ม deley ให้กับ task
+				asynq.ProcessIn(10 * time.Second), // คือเพิ่ม deley ให้กับ task // คือกำหนด delay เป็น 10s หมายความว่า task จะถูก picked up โดย worker หลังจากผ่านไป 10s // 
 				// asynq.Queue("critical"), // ถ้าคุณมี multiple tasks ที่มี priority level ที่แตกต่างกัน คุณสามารถใช้ asynq.Queue() option เพื่อกำหนด queues ส่งไป เช่นในครั้งนี้กำหนดเป็น "critical" // เรากำหนดเป็น "critical" คุณต้องไปบอก task processor ด้วยว่าให้เอา task จาก critical queues (มันจะเอาจาก "default" queue เป็น default)
 				asynq.Queue(worker.QueueCritical), // ใส่เป็น const แทนใส่ string ตรงๆนี้กว่า
 			}
@@ -52,7 +52,7 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		},
 	}
 
-	txResult, err := server.store.CreateUserTx(ctx, arg)
+	txResult, err := server.store.CreateUserTx(ctx, arg) // AfterCreate จะถูก call หลังจากที่ create user เสร็จ (ดูใน code ของ CreateUserTx ได้)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
