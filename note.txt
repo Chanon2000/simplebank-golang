@@ -38,3 +38,14 @@ Error ที่ขึ้นคือ
 ลองปรับ code ให้ไม่ทำการ delay เพื่อ process task เพื่อดูว่า การ delay task นั้นมันสำคัญแค่ใหน
 
 เนื่องจาก transactions ในงานจริงนั้นมันไม่ได้ commit ในเวลาอันรวดเร็วเสมอไป เพราะบางครั้งมันก็ช้า ตามจำนวน traffic ที่เข้ามาใน system เรา เป็นต้น
+
+[61. How to send email in Go via Gmail]
+
+เราจะส่ง email โดยใช้ smtp -> https://pkg.go.dev/net/smtp แต่เพื่อความรวดเร็ว 
+    เราสามารถใช้ comunity package นั้นคือ gomail -> https://github.com/go-gomail/gomail ที่ implement การส่ง email โดยใช้ smtp ในระดับนึงแล้วให้เรา แต่ repo มันค่อนข้างเก่า นั้นคือประมาณ 8ปีแล้ว และไม่มีการ maintain ใดๆ
+    เลยมีอีก package คือ https://github.com/jordan-wright/email ซึ่งดูใหม่กว่า (ดังนั้นเราจะใช้ package นี้เพื่อความรวดเร็ว)
+
+
+# เพิ่มเติม: ตอนสร้าง app password ที่ gmail นั้นคุณใช้เวลานานมาก เพราะหาุดสร้าง app password ไม่ได้ สุดท้าย search เอาที่ topbar ของ gmail management ถึงจะเจอ !!!
+
+แต่แน่นอนว่ามีวิธีอื่นในการส่ง mail โดยใช้พวก third-party service เช่น AWS SES (ถ้าคุณใช้ cloud เป็น AWS) ซึ่งก็จะใช้ผ่าน AWS golang SDK เป็นต้น
