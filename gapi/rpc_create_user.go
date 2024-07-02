@@ -27,14 +27,32 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, status.Errorf(codes.Internal, "failed to hash password: %s", err)
 	}
 
-	arg := db.CreateUserParams{
-		Username:       req.GetUsername(),
-		HashedPassword: hashedPassword,
-		FullName:       req.GetFullName(),
-		Email:          req.GetEmail(),
+	// คือทำการส่ง task ไปที่ redis กับ create user นั้นอยู่ใน db transaction เดียวกัน
+	// เพราะถ้ามัน CreateUser สำเร็จแต่ดันส่ง email ไม่ได้ (อาจเพราะว่าต่อ redis ไม่ได้) มันจะเกิดปัญหาขึ้น และแก้ค่อนข้างยาก 
+	// ทำให้สามารถแก้ด้วยการ send task ไปที่ redis ใน db transaction เดียวกับที่ทำการ insert new user ลง database ทำให้ถ้าเรา fail ในการส่ง task นั้นก็จะทำให้ transaction ถูก rollback เลย ทำให้ client สามารถส่ง retry มาโดยไม่เกิด issue ได้นั้นเอง
+	arg := db.CreateUserTxParams{ // อันนี้คือการเตรียม input data สำหรับ transaction นะ ซึ่งก็กำหนด AfterCreate callback function ด้วย
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.GetUsername(),
+			HashedPassword: hashedPassword,
+			FullName:       req.GetFullName(),
+			Email:          req.GetEmail(),
+		},
+		AfterCreate: func(user db.User) error {
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Username: user.Username,
+			}
+			opts := []asynq.Option{
+				asynq.MaxRetry(10), // retry ไม่เกิน 10 ครั้งถ้ามันเกิด fails
+				asynq.ProcessIn(10 * time.Second), // คือเพิ่ม deley ให้กับ task
+				// asynq.Queue("critical"), // ถ้าคุณมี multiple tasks ที่มี priority level ที่แตกต่างกัน คุณสามารถใช้ asynq.Queue() option เพื่อกำหนด queues ส่งไป เช่นในครั้งนี้กำหนดเป็น "critical" // เรากำหนดเป็น "critical" คุณต้องไปบอก task processor ด้วยว่าให้เอา task จาก critical queues (มันจะเอาจาก "default" queue เป็น default)
+				asynq.Queue(worker.QueueCritical), // ใส่เป็น const แทนใส่ string ตรงๆนี้กว่า
+			}
+
+			return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...) // return error ไปที่ caller ของ callback function นี้เลย
+		},
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -45,24 +63,8 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, status.Errorf(codes.Internal, "failed to create user: %s", err)
 	}
 
-	// TODO: use db transaction (ตรงนี้เราควรจะ create user และ ส่ง task ใน transaction เดียว เพื่อที่ว่าถ้า operation ใหน fail ก็จะได้ rollback ทั้ง 2 เลยได้) (ทำให้ lecture หน้า)
-
-	taskPayload := &worker.PayloadSendVerifyEmail{
-		Username: user.Username,
-	}
-	opts := []asynq.Option{
-		asynq.MaxRetry(10), // retry ไม่เกิน 10 ครั้งถ้ามันเกิด fails
-		asynq.ProcessIn(10 * time.Second), // คือเพิ่ม deley ให้กับ task
-		// asynq.Queue("critical"), // ถ้าคุณมี multiple tasks ที่มี priority level ที่แตกต่างกัน คุณสามารถใช้ asynq.Queue() option เพื่อกำหนด queues ส่งไป เช่นในครั้งนี้กำหนดเป็น "critical" // เรากำหนดเป็น "critical" คุณต้องไปบอก task processor ด้วยว่าให้เอา task จาก critical queues (มันจะเอาจาก "default" queue เป็น default)
-		asynq.Queue(worker.QueueCritical), // ใส่เป็น const แทนใส่ string ตรงๆนี้กว่า
-	}
-	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to distribute task to send verify email: %s", err)
-	}
-
 	rsp := &pb.CreateUserResponse{
-		User: convertUser(user),
+		User: convertUser(txResult.User),
 	}
 	return rsp, nil
 }

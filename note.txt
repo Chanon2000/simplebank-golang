@@ -16,3 +16,5 @@
 
 1 อย่างแรกเลยคือต้องเอา Redis มารันใน docker ก่อน (https://hub.docker.com/_/redis) 
     `docker exec -it redis redis-cli ping` -> เพื่อตรวจสอบการรันใน docker
+
+[58. Send async tasks to Redis within a DB transaction]
