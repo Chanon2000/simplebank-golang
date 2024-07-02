@@ -2,11 +2,14 @@ package gapi
 
 import (
 	"context"
+	"time"
 
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
 	"github.com/chanon2000/simplebank/val"
+	"github.com/chanon2000/simplebank/worker"
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -42,7 +45,21 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, status.Errorf(codes.Internal, "failed to create user: %s", err)
 	}
 
-	// Send verify email to user
+	// TODO: use db transaction (ตรงนี้เราควรจะ create user และ ส่ง task ใน transaction เดียว เพื่อที่ว่าถ้า operation ใหน fail ก็จะได้ rollback ทั้ง 2 เลยได้) (ทำให้ lecture หน้า)
+
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Username: user.Username,
+	}
+	opts := []asynq.Option{
+		asynq.MaxRetry(10), // retry ไม่เกิน 10 ครั้งถ้ามันเกิด fails
+		asynq.ProcessIn(10 * time.Second), // คือเพิ่ม deley ให้กับ task
+		// asynq.Queue("critical"), // ถ้าคุณมี multiple tasks ที่มี priority level ที่แตกต่างกัน คุณสามารถใช้ asynq.Queue() option เพื่อกำหนด queues ส่งไป เช่นในครั้งนี้กำหนดเป็น "critical" // เรากำหนดเป็น "critical" คุณต้องไปบอก task processor ด้วยว่าให้เอา task จาก critical queues (มันจะเอาจาก "default" queue เป็น default)
+		asynq.Queue(worker.QueueCritical), // ใส่เป็น const แทนใส่ string ตรงๆนี้กว่า
+	}
+	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to distribute task to send verify email: %s", err)
+	}
 
 	rsp := &pb.CreateUserResponse{
 		User: convertUser(user),

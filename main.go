@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/chanon2000/simplebank/gapi"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
+	"github.com/chanon2000/simplebank/worker"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -48,8 +50,17 @@ func main() {
 	runDBMigration(config.MigrationURL, config.DBSource)
 
 	store := db.NewStore(conn)
-	go runGatewayServer(config, store)
-	runGrpcServer(config, store)
+
+	redisOpt := asynq.RedisClientOpt{ // สร้าง redisOpt ตัวแปร ซึ่ง object นี้สามารถทำให้เรา set up parameters ได้อย่างหลากหลายเพื่อ communicate ไปที่ Redis server
+		Addr: config.RedisAddress, // กำหนด address ของ redis ที่เราจะต่อ
+		// ถ้าเป็น production อาจต้องกำหนด TLSConfig ด้วยนะ
+	}
+
+	// สร้าง new task distributor
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+	go runTaskProcessor(redisOpt, store) // เรียนให้รันใน go routine แยก เพราะว่าเมื่อ processor start นั้น Asynq server จะ block process อื่น เพื่อ polling Redis for new tasks นั้นเอง (เป็น design ที่คล้ายกับ HTTP webserver นั้นคือที่ HTTP server จะ block อย่างอื่นเพื่อรอ requests ใหม่ๆจาก client เข้ามา)
+	go runGatewayServer(config, store, taskDistributor) // เอา taskDistributor object ใส่เข้า runGatewayServer และ runGrpcServer
+	runGrpcServer(config, store, taskDistributor)
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
@@ -65,8 +76,18 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGrpcServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+// เพื่อรัน task processor
+func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+	log.Info().Msg("start task processor")
+	err := taskProcessor.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to start task processor")
+	}
+}
+
+func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
@@ -88,8 +109,8 @@ func runGrpcServer(config util.Config, store db.Store) {
 	}
 }
 
-func runGatewayServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGatewayServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}

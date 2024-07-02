@@ -25,7 +25,12 @@ type RedisTaskProcessor struct {
 func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskProcessor { // redisOpt เพื่อ connect กับ redis
 	server := asynq.NewServer(
 		redisOpt,
-		asynq.Config{}, // asynq.Config{} เอาไว้ควบคุม parameters ต่างๆของ asynq server // ตอนนี้ว่างๆไปก่อน
+		asynq.Config{ // asynq.Config{} เอาไว้ควบคุม parameters ต่างๆของ asynq server  
+			Queues: map[string]int{
+				QueueCritical: 10, // 10 คือ priority values นั้นคือ ให้ task processor เอา task จาก Critical Queue ก่อน Default Queue ก่อน (เพราะ priority สูงกว่า)
+				QueueDefault:  5,
+			},
+		},
 	)
 
 	return &RedisTaskProcessor{

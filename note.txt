@@ -10,3 +10,9 @@
         เราจะใช้ในการ "send verification email" use case ใน course นี้
 
         โดยเราจะใช้ package ชื่อ asynq -> https://github.com/hibiken/asynq ซึ่งมันทั้ง simple, reliable, efficient ในการ distributed task queue library ซึ่งทำให้เรา enqueue และ process tasks asynchronously โดยใช้ background workers
+
+
+[57. Integrate async worker to Go web server]
+
+1 อย่างแรกเลยคือต้องเอา Redis มารันใน docker ก่อน (https://hub.docker.com/_/redis) 
+    `docker exec -it redis redis-cli ping` -> เพื่อตรวจสอบการรันใน docker
