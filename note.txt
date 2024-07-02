@@ -18,3 +18,17 @@
     `docker exec -it redis redis-cli ping` -> เพื่อตรวจสอบการรันใน docker
 
 [58. Send async tasks to Redis within a DB transaction]
+
+[59. How to handle errors and print logs for Async workers]
+
+เนื่องจากว่าถ้า task process แล้วเกิด error มันจะยังไม่แสดง error ออกมาที่ console เลยต้องมาจัดการใน lecture นี้ 
+
+คุณจำลอง error โดยการยิง v1/create_user จากนั้นก็กดหยุดรัน postgres db ซึ่งเนื่องจากกำหนด delay ในการเอา task จาก redis มารัน 10s เมื่อครบ 10s มันก็จะแจ้ง error เพราะว่ามัน get user ไม่ได้ เลย error ที่ `GetUser(ctx, payload.Username)` ใน ProcessTaskSendVerifyEmail
+
+Error ที่ขึ้นคือ
+`
+2:38PM ERR process task failed error="failed to get user: read tcp [::1]:56941->[::1]:5432: read: connection reset by peer" payload="{\"username\":\"mick19\"}" type=task:send_verify_email
+`
+(เนื่องจากคุณกด stop ใน docker desktop ถ้ากด Pause นั้น error นี้จะไม่ขึ้นนะ แต่ถ้ากด stop นัั้นแหละ error ถึงจะขึ้น)
+
+แต่เมื่อคุณกดรัน postgres db อีกครั้ง task processor ก็จะรัน task จนสำเร็จทันทีเลย
