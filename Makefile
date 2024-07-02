@@ -25,8 +25,8 @@ migratedown1:
 sqlc:
 	sqlc generate
 
-test:
-	go test -v -cover ./...
+test: # คือใส่ short flag ตรง command นี้เลย
+	go test -v -cover -short ./...
 
 server:
 	go run main.go

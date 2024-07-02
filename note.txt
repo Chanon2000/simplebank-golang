@@ -49,3 +49,10 @@ Error ที่ขึ้นคือ
 # เพิ่มเติม: ตอนสร้าง app password ที่ gmail นั้นคุณใช้เวลานานมาก เพราะหาุดสร้าง app password ไม่ได้ สุดท้าย search เอาที่ topbar ของ gmail management ถึงจะเจอ !!!
 
 แต่แน่นอนว่ามีวิธีอื่นในการส่ง mail โดยใช้พวก third-party service เช่น AWS SES (ถ้าคุณใช้ cloud เป็น AWS) ซึ่งก็จะใช้ผ่าน AWS golang SDK เป็นต้น
+
+
+[62. How to skip test in Go and config test flag in vscode]
+
+เนื่องจากเราใส่ sender_test ใน lecture ที่แล้ว นั้นทำให้ถ้าเรารัน workflow ใน github นั้นอาจทำให้ มันจะส่ง mail ทุกครั้งที่รัน workflow ดังนั้นเราควรจะ skip sender_test test ใน workflow
+
+สามารถ setting go test ใน vscode ได้โดย ไปที่ setting แล้ว search ด้วย `go test flag` -> ที่ "go.testFlags" ใน settings.json

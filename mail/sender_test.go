@@ -8,6 +8,10 @@ import (
 )
 
 func TestSendEmailWithGmail(t *testing.T) {
+	if testing.Short() { // check ว่า ถ้ามี Short flag (ซึ่งถ้ามี Short() ก็จะเป็น true) ให้ทำการ skip test นี้
+		t.Skip()
+	}
+
 	config, err := util.LoadConfig("..")
 	require.NoError(t, err)
 
