@@ -122,6 +122,45 @@
           "SimpleBank"
         ]
       }
+    },
+    "/v1/verify_email": {
+      "get": {
+        "summary": "Verify email",
+        "description": "Use this API to verify user's email address",
+        "operationId": "SimpleBank_VerifyEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbVerifyEmailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "secretCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SimpleBank"
+        ]
+      }
     }
   },
   "definitions": {
@@ -193,8 +232,7 @@
           "type": "string"
         },
         "fullName": {
-          "type": "string",
-          "title": "optional เพื่อบอกว่า fields นี้ไม่บังคับใส่ value"
+          "type": "string"
         },
         "email": {
           "type": "string"
@@ -202,8 +240,7 @@
         "password": {
           "type": "string"
         }
-      },
-      "title": "นั้นคือเมื่อจะ update user ต้องใส่ username เสมอ แต่อีก 3 fields ที่เหลือจะเข้ามา update หรือไม่ก็ได้"
+      }
     },
     "pbUpdateUserResponse": {
       "type": "object",
@@ -217,8 +254,7 @@
       "type": "object",
       "properties": {
         "username": {
-          "type": "string",
-          "title": "1 คือ field number ซึ่งสำคัญมากใน proto buffer เพราะใช้เพื่อ uniquely identify field เมื่อทำการ serialize หรือ deserialize message ใน binary format"
+          "type": "string"
         },
         "fullName": {
           "type": "string"
@@ -234,8 +270,15 @@
           "type": "string",
           "format": "date-time"
         }
-      },
-      "title": "กำหนด User message"
+      }
+    },
+    "pbVerifyEmailResponse": {
+      "type": "object",
+      "properties": {
+        "isVerified": {
+          "type": "boolean"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

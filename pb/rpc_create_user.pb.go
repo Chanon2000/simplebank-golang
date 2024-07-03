@@ -4,8 +4,6 @@
 // 	protoc        v5.27.1
 // source: rpc_create_user.proto
 
-// กำหนด request response data structure ของ create user API ใน file นี้
-
 package pb
 
 import (

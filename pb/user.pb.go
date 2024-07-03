@@ -26,7 +26,7 @@ type User struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Username          string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"` // 1 คือ field number ซึ่งสำคัญมากใน proto buffer เพราะใช้เพื่อ uniquely identify field เมื่อทำการ serialize หรือ deserialize message ใน binary format
+	Username          string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	FullName          string                 `protobuf:"bytes,2,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
 	Email             string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	PasswordChangedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=password_changed_at,json=passwordChangedAt,proto3" json:"password_changed_at,omitempty"`

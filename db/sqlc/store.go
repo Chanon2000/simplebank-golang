@@ -11,6 +11,7 @@ type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) 
 	CreateUserTx(ctx context.Context, arg CreateUserTxParams) (CreateUserTxResult, error) // เอา CreateUserTx ใส่ลง Store ด้วยเพื่อให้ง่ายต่อการ mocked เมื่อต้องการทำ unit test เป็นต้น
+	VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParams) (VerifyEmailTxResult, error)
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions // real db
