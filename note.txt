@@ -56,3 +56,9 @@ Error ที่ขึ้นคือ
 เนื่องจากเราใส่ sender_test ใน lecture ที่แล้ว นั้นทำให้ถ้าเรารัน workflow ใน github นั้นอาจทำให้ มันจะส่ง mail ทุกครั้งที่รัน workflow ดังนั้นเราควรจะ skip sender_test test ใน workflow
 
 สามารถ setting go test ใน vscode ได้โดย ไปที่ setting แล้ว search ด้วย `go test flag` -> ที่ "go.testFlags" ใน settings.json
+
+
+[63. Email verification feature: design DB and send email]
+
+
+# เนื่องจากเรา deploy db ของ production และมี data เก็บอยู่แล้ว เราเลยไม่อาจ drop db แล้วสร้างใหม่ได้ เลยใช้วิธีสร้าง migration script ใหม่นั้นเอง ในครั้งนี้นั้นคือ 

@@ -16,6 +16,7 @@ import (
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	_ "github.com/chanon2000/simplebank/doc/statik"
 	"github.com/chanon2000/simplebank/gapi"
+	"github.com/chanon2000/simplebank/mail"
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
 	"github.com/chanon2000/simplebank/worker"
@@ -58,7 +59,7 @@ func main() {
 
 	// สร้าง new task distributor
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
-	go runTaskProcessor(redisOpt, store) // เรียนให้รันใน go routine แยก เพราะว่าเมื่อ processor start นั้น Asynq server จะ block process อื่น เพื่อ polling Redis for new tasks นั้นเอง (เป็น design ที่คล้ายกับ HTTP webserver นั้นคือที่ HTTP server จะ block อย่างอื่นเพื่อรอ requests ใหม่ๆจาก client เข้ามา)
+	go runTaskProcessor(config, redisOpt, store) // เรียนให้รันใน go routine แยก เพราะว่าเมื่อ processor start นั้น Asynq server จะ block process อื่น เพื่อ polling Redis for new tasks นั้นเอง (เป็น design ที่คล้ายกับ HTTP webserver นั้นคือที่ HTTP server จะ block อย่างอื่นเพื่อรอ requests ใหม่ๆจาก client เข้ามา)
 	go runGatewayServer(config, store, taskDistributor) // เอา taskDistributor object ใส่เข้า runGatewayServer และ runGrpcServer
 	runGrpcServer(config, store, taskDistributor)
 }
@@ -77,8 +78,9 @@ func runDBMigration(migrationURL string, dbSource string) {
 }
 
 // เพื่อรัน task processor
-func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
-	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+func runTaskProcessor(config util.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 	log.Info().Msg("start task processor")
 	err := taskProcessor.Start()
 	if err != nil {

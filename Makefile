@@ -56,4 +56,9 @@ evans:
 redis: # เพื่อรัน redis ใน docker
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock db_docs db_schema proto evans redis
+new_migration: # เพื่อสร้าง migration script ใหม่
+	migrate create -ext sql -dir db/migration -seq $(name)
+# $(name) คือเมื่อรัน make คุณสามารถใส่ name option เพื่อกำหนด name ในที่นี้ได้นั้นเอง เช่น make new_migration name=add_verify_emails
+
+
+.PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 new_migration sqlc test server mock db_docs db_schema proto evans redis

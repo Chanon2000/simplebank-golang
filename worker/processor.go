@@ -4,8 +4,9 @@ import (
 	"context"
 
 	db "github.com/chanon2000/simplebank/db/sqlc"
-	"github.com/hibiken/asynq"
+	"github.com/chanon2000/simplebank/mail"
 	"github.com/go-redis/redis/v8"
+	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,9 +23,10 @@ type TaskProcessor interface {
 type RedisTaskProcessor struct {
 	server *asynq.Server
 	store  db.Store
+	mailer mail.EmailSender // EmailSender interface ซึ่งมี method ที่เอาไว้ส่ง email
 }
 
-func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskProcessor { // redisOpt เพื่อ connect กับ redis
+func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) TaskProcessor { // redisOpt เพื่อ connect กับ redis
 	logger := NewLogger()
 	redis.SetLogger(logger) // เนื่องจากมี logs ที่เกิดจาก go-redis นี้ขึ้น เมื่อเกิด error (เช่นไม่สามารถ connect redis ได้) ซึ่ง format log มันเป็น format ของ package มันเลย เราเลยทำการ format มันให้เหมือนกันให้หมดด้วยใช้การ custom มันโดยใช้ redis.SetLogger นั้นเอง
 	// go-redis เป็น package ที่ asynq ใช้ในเบื้องหลังอีกที
@@ -50,6 +52,7 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskPr
 	return &RedisTaskProcessor{
 		server: server,
 		store:  store,
+		mailer: mailer,
 	}
 }
 
