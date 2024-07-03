@@ -31,8 +31,11 @@ test: # คือใส่ short flag ตรง command นี้เลย
 server:
 	go run main.go
 
-mock:
+mock: # เพื่อเพิ่มการ mock worker เพื่อใช้สำหรับ test
 	mockgen -package mockdb -destination db/mock/store.go github.com/chanon2000/simplebank/db/sqlc Store
+	mockgen -package mockwk -destination worker/mock/distributor.go github.com/chanon2000/simplebank/worker TaskDistributor
+# TaskDistributor คือชื่อเดียวกับ interface ใน distributor.go ซึ่งเมื่อรัน mock ก็จะได้ MockTaskDistributor ใน worker/mock/distributor.go เพื่อใช้ในการ test
+
 
 db_docs:
 	dbdocs build doc/db.dbml

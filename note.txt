@@ -62,3 +62,8 @@ Error ที่ขึ้นคือ
 
 
 # เนื่องจากเรา deploy db ของ production และมี data เก็บอยู่แล้ว เราเลยไม่อาจ drop db แล้วสร้างใหม่ได้ เลยใช้วิธีสร้าง migration script ใหม่นั้นเอง ในครั้งนี้นั้นคือ 
+
+
+[65. Unit test gRPC API with mock DB & Redis]
+
+
