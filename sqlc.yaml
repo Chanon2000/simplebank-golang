@@ -3,7 +3,7 @@ sql:
 - schema: "db/migration"
   queries: "db/query"
   engine: "postgresql"
-  gen:
+  gen: # gen คือส่วนที่บอกว่าจะให้ sqlc generate code ยังไงบ้าง (สามารถ config ได้ตรงนี้นั้นเอง)
     go: 
       package: "db"
       out: "db/sqlc"

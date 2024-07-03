@@ -1,0 +1,4 @@
+[67. Upgrade and config sqlc with version 2 syntax]
+
+เนื่องจากคุณใช้ version 2 อยู่แล้ว เลยไม่ได้เปลี่ยนอะไรใน code เลย
+
