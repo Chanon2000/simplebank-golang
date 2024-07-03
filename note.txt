@@ -15,3 +15,9 @@
 3 รัน `make sqlc`
     # หลังรันสำเร็จก็จะเกิด error มากมาย
 4 ทำการแก้ error ที่เกิดขึ้นใน code หลังรัน make
+
+[69. How to properly handle DB errors with pgx driver]
+
+เนื่องจาก lecture ก่อนหน้าเรายังไม่ได้กำจัด lib/pq code ออกทั้งหมด เช่นในส่วนของ db handle error นั้นเอง
+
+หลังจากลบ lib/pq เสร็จก็รัน go mod tidy ด้วย เพื่อ clear ใน go.mod ด้วยนั้นเอง

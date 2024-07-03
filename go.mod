@@ -12,7 +12,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/jackc/pgx/v5 v5.5.4
-	github.com/lib/pq v1.10.9
 	github.com/o1egl/paseto v1.0.0
 	github.com/rakyll/statik v0.1.7
 	github.com/rs/zerolog v1.33.0
@@ -27,6 +26,7 @@ require (
 
 require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/lib/pq v1.10.9 // indirect // จะเห็นว่า lib/pq มาอยู่ที่ indirect นั้นเพราะว่ามันยังถูกใช้โดย golang-migrate package นั้นเอง
 	golang.org/x/sync v0.7.0 // indirect
 )
 

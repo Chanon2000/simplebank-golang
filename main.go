@@ -16,7 +16,6 @@ import (
 	db "github.com/chanon2000/simplebank/db/sqlc"
 	_ "github.com/chanon2000/simplebank/doc/statik"
 
-	// _ "github.com/jackc/pgx/v5"
 	"github.com/chanon2000/simplebank/gapi"
 	"github.com/chanon2000/simplebank/mail"
 	"github.com/chanon2000/simplebank/pb"
@@ -27,7 +26,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
-	// _ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
