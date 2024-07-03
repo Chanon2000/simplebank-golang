@@ -2,3 +2,16 @@
 
 เนื่องจากคุณใช้ version 2 อยู่แล้ว เลยไม่ได้เปลี่ยนอะไรใน code เลย
 
+
+[68. Switch DB driver from lib/pq to pgx]
+
+เนื่องจาก lib/pq (https://github.com/lib/pq) ถูกอยู่ใน maintenance mode ทำให้เราจะเปลี่ยนมาใช้ pgx (https://github.com/jackc/pgx) ตามคำแนะนำของ lib/pq doc เอง
+(แต่อย่างไรก็ตามเนื่องจากคุณใช้ lib/pq มาตั้งแต่เริ่ม project มันก็แสดงไให้เห็นว่ามันยังเป็น package ที่ใช้งานได้โดยไม่มีปัญหานะ แต่แค่ไม่ทันสมัยแล้ว)
+
+ขั้นตอนการเปลี่ยนมาใช้ pgx
+1 install pgx/v5
+    # คนสอนชอบใส่ import (ในที่นี้คือ _ "github.com/jackc/pgx/v5")ใน go code ก่อน แล้วค่อยรัน go mod tidy เพื่อ install มัน
+2 เปลี่ยน sql_package มาใช้ pgx/v5 แทน
+3 รัน `make sqlc`
+    # หลังรันสำเร็จก็จะเกิด error มากมาย
+4 ทำการแก้ error ที่เกิดขึ้นใน code หลังรัน make

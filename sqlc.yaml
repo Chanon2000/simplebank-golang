@@ -7,7 +7,12 @@ sql:
     go: 
       package: "db"
       out: "db/sqlc"
-      sql_package: "database/sql"
+      sql_package: "pgx/v5" # เป็นมาใช้ pgx db driver แทน
       emit_json_tags: true
       emit_interface: true
       emit_empty_slices: true
+      overrides:
+        - db_type: "timestamptz" # timestamptz คือ type ของ เวลาที่จะเก็บลง db เมื่อ generate เป็น go code มันเป็นเปลี่ยนเป็น type ที่กำหนดใน go_type
+          go_type: "time.Time" # บอกให้ sqlc ใช้ time.Time ใน go code หรือก็คือ original time type ของ golang นั้นแหละ # เนื่องจากพอเปลี่ยนมาใช้ pgx/v5 มันจะ auto เปลี่ยนมาใช้ pgType.Timestamptz แทน
+        - db_type: "uuid"
+          go_type: "github.com/google/uuid.UUID" # ให้เปลี่ยนมาใช้ github.com/google/uuid.UUID (uuid จาก google package) แทน pgtype.UUID ซึ่งคือ default type ของ pgx/v5 
