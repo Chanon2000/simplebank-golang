@@ -52,15 +52,13 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	redisOpt := asynq.RedisClientOpt{ // สร้าง redisOpt ตัวแปร ซึ่ง object นี้สามารถทำให้เรา set up parameters ได้อย่างหลากหลายเพื่อ communicate ไปที่ Redis server
-		Addr: config.RedisAddress, // กำหนด address ของ redis ที่เราจะต่อ
-		// ถ้าเป็น production อาจต้องกำหนด TLSConfig ด้วยนะ
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
 	}
 
-	// สร้าง new task distributor
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
-	go runTaskProcessor(config, redisOpt, store) // เรียนให้รันใน go routine แยก เพราะว่าเมื่อ processor start นั้น Asynq server จะ block process อื่น เพื่อ polling Redis for new tasks นั้นเอง (เป็น design ที่คล้ายกับ HTTP webserver นั้นคือที่ HTTP server จะ block อย่างอื่นเพื่อรอ requests ใหม่ๆจาก client เข้ามา)
-	go runGatewayServer(config, store, taskDistributor) // เอา taskDistributor object ใส่เข้า runGatewayServer และ runGrpcServer
+	go runTaskProcessor(config, redisOpt, store)
+	go runGatewayServer(config, store, taskDistributor)
 	runGrpcServer(config, store, taskDistributor)
 }
 

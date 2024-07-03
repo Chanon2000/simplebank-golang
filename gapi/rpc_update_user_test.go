@@ -105,7 +105,7 @@ func TestUpdateUserAPI(t *testing.T) {
 			req: &pb.UpdateUserRequest{
 				Username: user.Username,
 				FullName: &newName,
-				Email:    &invalidEmail, // ใส่ string ลงตัวแปรแล้วเอามาใส่ &invalidEmail แบบนี้ เนื่องจากเราไม่สามารถใส่ &"invalid-email" แบบนี้ได้
+				Email:    &invalidEmail,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -179,7 +179,7 @@ func TestUpdateUserAPI(t *testing.T) {
 			tc.buildStubs(store)
 			server := newTestServer(t, store, nil)
 
-			ctx := tc.buildContext(t, server.tokenMaker) // เพื่อจะได้สร้าง token ได้
+			ctx := tc.buildContext(t, server.tokenMaker)
 			res, err := server.UpdateUser(ctx, tc.req)
 			tc.checkResponse(t, res, err)
 		})

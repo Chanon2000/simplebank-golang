@@ -17,7 +17,7 @@ func (server *Server) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReques
 		return nil, invalidArgumentError(violations)
 	}
 
-	txResult, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{ //
+	txResult, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{
 		EmailId:    req.GetEmailId(),
 		SecretCode: req.GetSecretCode(),
 	})
@@ -40,5 +40,5 @@ func validateVerifyEmailRequest(req *pb.VerifyEmailRequest) (violations []*errde
 		violations = append(violations, fieldViolation("secret_code", err))
 	}
 
-	return violations // return violations list
+	return violations
 }

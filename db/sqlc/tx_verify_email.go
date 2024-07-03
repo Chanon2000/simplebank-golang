@@ -15,7 +15,7 @@ type VerifyEmailTxResult struct {
 	VerifyEmail VerifyEmail
 }
 
-func (store *SQLStore) VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParams) (VerifyEmailTxResult, error) { // เพื่อ update verify email และ update user ใน transaction เดียว
+func (store *SQLStore) VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParams) (VerifyEmailTxResult, error) {
 	var result VerifyEmailTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {

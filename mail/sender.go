@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	smtpAuthAddress   = "smtp.gmail.com" // เนื่องจากเราจะส่งไปที่ gmail
-	smtpServerAddress = "smtp.gmail.com:587" // address ของ smtp server ของ gmail
+	smtpAuthAddress   = "smtp.gmail.com"
+	smtpServerAddress = "smtp.gmail.com:587"
 )
 
-type EmailSender interface { // กำหนด EmailSender interface เพื่อทำให้ code ดู abstract และง่ายต่อการ test มากขึ้น
+type EmailSender interface {
 	SendEmail(
 		subject string,
 		content string,
@@ -45,7 +45,7 @@ func (sender *GmailSender) SendEmail(
 	bcc []string,
 	attachFiles []string,
 ) error {
-	e := email.NewEmail() // สร้าง email object
+	e := email.NewEmail()
 	e.From = fmt.Sprintf("%s <%s>", sender.name, sender.fromEmailAddress)
 	e.Subject = subject
 	e.HTML = []byte(content)
@@ -54,13 +54,12 @@ func (sender *GmailSender) SendEmail(
 	e.Bcc = bcc
 
 	for _, f := range attachFiles {
-		_, err := e.AttachFile(f) // AttachFile เพื่อแทบ file เข้า email
+		_, err := e.AttachFile(f)
 		if err != nil {
 			return fmt.Errorf("failed to attach file %s: %w", f, err)
 		}
 	}
 
-	// ทำการ authenticating กับ SMTP server
 	smtpAuth := smtp.PlainAuth("", sender.fromEmailAddress, sender.fromEmailPassword, smtpAuthAddress)
-	return e.Send(smtpServerAddress, smtpAuth) // ทำการส่ง email จริงๆ
+	return e.Send(smtpServerAddress, smtpAuth)
 }

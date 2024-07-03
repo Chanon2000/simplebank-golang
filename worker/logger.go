@@ -1,4 +1,4 @@
-package worker // ใน file นี้ หลักๆคือเอา Logger interface จาก Logger field ของ asynq.Config มา implement เพิ่มเติมได้แก่ Debug Info Warn Error Fatal (ซึ่งก็คือคนละ level ของ logs) และเพิ่ม Print Printf เข้ามา
+package worker
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 type Logger struct{}
 
-func NewLogger() *Logger { // function เพื่อสร้าง Logger object
+func NewLogger() *Logger {
 	return &Logger{}
 }
 

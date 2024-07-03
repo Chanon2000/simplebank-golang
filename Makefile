@@ -25,17 +25,15 @@ migratedown1:
 sqlc:
 	sqlc generate
 
-test: # คือใส่ short flag ตรง command นี้เลย
+test:
 	go test -v -cover -short ./...
 
 server:
 	go run main.go
 
-mock: # เพื่อเพิ่มการ mock worker เพื่อใช้สำหรับ test
+mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/chanon2000/simplebank/db/sqlc Store
 	mockgen -package mockwk -destination worker/mock/distributor.go github.com/chanon2000/simplebank/worker TaskDistributor
-# TaskDistributor คือชื่อเดียวกับ interface ใน distributor.go ซึ่งเมื่อรัน mock ก็จะได้ MockTaskDistributor ใน worker/mock/distributor.go เพื่อใช้ในการ test
-
 
 db_docs:
 	dbdocs build doc/db.dbml
@@ -56,12 +54,11 @@ proto:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-redis: # เพื่อรัน redis ใน docker
+redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-new_migration: # เพื่อสร้าง migration script ใหม่
+new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)
-# $(name) คือเมื่อรัน make คุณสามารถใส่ name option เพื่อกำหนด name ในที่นี้ได้นั้นเอง เช่น make new_migration name=add_verify_emails
 
 
 .PHONY: postgres createdb dropdb migrateup migrateup1 migratedown migratedown1 new_migration sqlc test server mock db_docs db_schema proto evans redis

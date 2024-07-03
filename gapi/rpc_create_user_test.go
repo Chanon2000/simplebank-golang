@@ -12,7 +12,7 @@ import (
 	"github.com/chanon2000/simplebank/pb"
 	"github.com/chanon2000/simplebank/util"
 	"github.com/chanon2000/simplebank/worker"
-	mockwk "github.com/chanon2000/simplebank/worker/mock" // สังเกตว่าเรา import mockwk มาใช้ครั้งแรก vscode เลยไม่รู้ว่าเราจะ generate ให้ยังไง
+	mockwk "github.com/chanon2000/simplebank/worker/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
@@ -78,7 +78,7 @@ func TestCreateUserAPI(t *testing.T) {
 	}{
 		{
 			name: "OK",
-			req: &pb.CreateUserRequest{ // (เนื่องจากเราใช้ gRPC ไม่ใช่ Gin เลยไม่ใช้ gin.H) // &pb.CreateUserRequest คือ request interface ที่เข้ามาใน CreateUser RPC
+			req: &pb.CreateUserRequest{
 				Username: user.Username,
 				Password: password,
 				FullName: user.FullName,
@@ -198,7 +198,7 @@ func TestCreateUserAPI(t *testing.T) {
 			defer storeCtrl.Finish()
 			store := mockdb.NewMockStore(storeCtrl)
 
-			taskCtrl := gomock.NewController(t) // แยก Controller ออกเป็น storeCtrl กับ taskCtrl เนื่องจากมี locking mechanism ใน controller // ศึกษาลึกๆต่อเอง
+			taskCtrl := gomock.NewController(t)
 			defer taskCtrl.Finish()
 			taskDistributor := mockwk.NewMockTaskDistributor(taskCtrl)
 
@@ -206,7 +206,7 @@ func TestCreateUserAPI(t *testing.T) {
 			server := newTestServer(t, store, taskDistributor)
 
 			res, err := server.CreateUser(context.Background(), tc.req)
-			tc.checkResponse(t, res, err) // t ตรงนี้คือ t จาก callback function ไม่ใช่ t ที่ทำการ t.Run นะ
+			tc.checkResponse(t, res, err)
 		})
 	}
 }

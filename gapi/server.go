@@ -16,7 +16,7 @@ type Server struct {
 	config          util.Config
 	store           db.Store
 	tokenMaker      token.Maker
-	taskDistributor worker.TaskDistributor // เพื่อให้ taskDistributor ใช้งานได้ในทุก RPC function
+	taskDistributor worker.TaskDistributor
 }
 
 // NewServer creates a new gRPC server.
