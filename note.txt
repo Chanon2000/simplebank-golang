@@ -21,3 +21,9 @@
 เนื่องจาก lecture ก่อนหน้าเรายังไม่ได้กำจัด lib/pq code ออกทั้งหมด เช่นในส่วนของ db handle error นั้นเอง
 
 หลังจากลบ lib/pq เสร็จก็รัน go mod tidy ด้วย เพื่อ clear ใน go.mod ด้วยนั้นเอง
+
+
+[70. Docker compose: port + volume mapping]
+
+
+เนื่องจากเราพึงปรับให้ project ใช้ redis เพื่อให้สามารถทำงานแบบ async ได้ แต่เราไม่ได้เพิ่มมันลง docker-componse เลย ทำให้เมื่อรัน `docker-compose up --build` แล้วมันจะ error
