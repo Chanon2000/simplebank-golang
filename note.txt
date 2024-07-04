@@ -39,3 +39,7 @@
 ซึ่งเหตุการณ์แบบนี้สามารถเกิดขึ้นได้ตลอดเวลาในขณะที่เราทำการ deploy new code ไปที่ server
 
 ด้วยเหตุนี้เราเลยควรจะเพิ้ม graceful shutdown ให้กับ server ของเรา เพื่อให้มันหยุกรับ new requests ก่อนแล้ว wait สำหรับ on-going request ให้ completed ก่อนที่จะ shutting down
+
+[77. Go 1.22 fixed the most common for-loop trap]
+
+https://tip.golang.org/doc/go1.22
