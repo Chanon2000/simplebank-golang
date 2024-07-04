@@ -27,3 +27,8 @@
 
 
 เนื่องจากเราพึงปรับให้ project ใช้ redis เพื่อให้สามารถทำงานแบบ async ได้ แต่เราไม่ได้เพิ่มมันลง docker-componse เลย ทำให้เมื่อรัน `docker-compose up --build` แล้วมันจะ error
+
+
+[71. How to install & use binary packages in Go]
+
+ถ้าคุณใช้ go version 1.21 ขึ้นไป คุณจะเห็นว่ามันมี error ที่ tool package folder (แต่ของคุณไม่มีอยู่แล้วนะ เลยไม่ต้องทำตามปต่อย่างไร) ซึ่งหมายความว่าใน go version นี้นั้นการ import binary executable package นั้นทำไม่ได้แล้ว (ซึ่งคุณทำตามที่ grpc-gateway doc บอกให้ทำ -> https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#compile-from-source)
