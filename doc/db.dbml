@@ -7,7 +7,7 @@ Project simple_bank {
 
 Table users as U {
   username varchar [pk]
-  role varchar [not null, default: 'depositor']
+  role varchar [not null, default: 'depositor'] // คุณเพิ่ม  field นี้ไปก่อนแล้ว
   hashed_password varchar [not null]
   full_name varchar [not null]
   email varchar [unique, not null]
