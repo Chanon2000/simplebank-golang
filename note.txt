@@ -32,3 +32,10 @@
 [71. How to install & use binary packages in Go]
 
 ถ้าคุณใช้ go version 1.21 ขึ้นไป คุณจะเห็นว่ามันมี error ที่ tool package folder (แต่ของคุณไม่มีอยู่แล้วนะ เลยไม่ต้องทำตามปต่อย่างไร) ซึ่งหมายความว่าใน go version นี้นั้นการ import binary executable package นั้นทำไม่ได้แล้ว (ซึ่งคุณทำตามที่ grpc-gateway doc บอกให้ทำ -> https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#compile-from-source)
+
+[76. Graceful shutdown gRPC/HTTP servers and async worker]
+
+เนื่องจากปัจจุบันเมื่อมี request เข้ามา process เช่นทำ CreateUser RPC โดยเมื่อเราทำการ stop server มันก็จะ stop ทันทีไม่รอให้ request นั้น complete ก่อน นั้นอาจทำให้ข้อมูลเกิดการผิดพลาดได้หรือเสียข้อมูล user นั้นไปเลยในกรณีนี้ 
+ซึ่งเหตุการณ์แบบนี้สามารถเกิดขึ้นได้ตลอดเวลาในขณะที่เราทำการ deploy new code ไปที่ server
+
+ด้วยเหตุนี้เราเลยควรจะเพิ้ม graceful shutdown ให้กับ server ของเรา เพื่อให้มันหยุกรับ new requests ก่อนแล้ว wait สำหรับ on-going request ให้ completed ก่อนที่จะ shutting down
