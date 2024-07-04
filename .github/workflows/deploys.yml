@@ -48,7 +48,11 @@ jobs:
     - name: Deploy image to Amazon EKS
       run: |
         kubectl apply -f eks/aws-auth.yaml
-        kubectl apply -f eks/deployment.yaml
+        kubectl rollout restart -f eks/deployment.yaml
         kubectl apply -f eks/service.yaml
         kubectl apply -f eks/issuer.yaml
-        kubectl apply -f eks/ingress.yaml
+        kubectl apply -f eks/ingress-nginx.yaml
+        kubectl apply -f eks/ingress-http.yaml
+        kubectl apply -f eks/ingress-grpc.yaml
+      # เป็นที่ deployment.yaml เป็น rollout restart เนื่องจากว่าเมื่อใช้ apply ถ้าเราไม่ได้ไปแก้ content ใน deployment.yaml file มันมักจะไม่ pull image ใหม่มาไปรันที่ EKS 
+      # แต่ถ้า deploy ครั้งแรก ควรใช้ apply ที่ deployment.yaml นะ เพราะถ้าใช้ rollout restart ทั้งๆที่ยังไม่เคย apply มันจะ error
