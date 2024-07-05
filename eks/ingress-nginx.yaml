@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1 # เป็นชื่อ file จาก ingress เป็น ingress-nginx เนื่องจากเราใช้มันเพื่อ deploy "nginx" ingress class เท่านั้น
+apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   name: nginx

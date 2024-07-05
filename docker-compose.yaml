@@ -7,9 +7,9 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=simple_bank
     ports:
-      - "5432:5432" # เพื่อ expose port นี้ไปที่ localhost เช่นกัน (จากได้ connect กับ db นี้ผ่าน db client)
+      - "5432:5432"
     volumes:
-      - data-volume:/var/lib/postgresql/data # เก็บ data ลง volumes แทน เพื่อป้องกันการข้อมูลหายเมื่อรัน docker-compose down เป็นต้น
+      - data-volume:/var/lib/postgresql/data
   redis:
     image: redis:7-alpine
   api:
@@ -18,10 +18,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-      - "9090:9090" # port mapping นี้ เพื่อ expose port นี้ไปที่ localhost
+      - "9090:9090"
     environment:
       - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
-      - REDIS_ADDRESS=redis:6379 # ถ้าต่อใน docker ต้องใช้ address เป็น redis ตามชื่อ service
+      - REDIS_ADDRESS=redis:6379
     depends_on:
       - postgres
       - redis

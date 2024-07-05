@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1 # แยก ingress ออกเป็นหลายๆ file เพื่อจะได้ deploy หลายๆ ingress ได้ง่ายๆ
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: sinple-bank-ingress-http

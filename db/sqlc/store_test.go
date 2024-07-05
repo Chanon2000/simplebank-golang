@@ -9,7 +9,6 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
-	// store := NewStore(testDB) // ไม่ต้องทำแล้วเนื่องจากเรามี testStore แล้ว
 
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)

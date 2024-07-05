@@ -7,11 +7,11 @@ Project simple_bank {
 
 Table users as U {
   username varchar [pk]
-  role varchar [not null, default: 'depositor'] // คุณเพิ่ม  field นี้ไปก่อนแล้ว
+  role varchar [not null, default: 'depositor']
   hashed_password varchar [not null]
   full_name varchar [not null]
   email varchar [unique, not null]
-  is_email_verified bool [not null, default: false] // คุณเพิ่ม  field นี้ไปก่อนแล้ว
+  is_email_verified bool [not null, default: false]
   password_changed_at timestamptz [not null, default: '0001-01-01']
   created_at timestamptz [not null, default: `now()`]
 }

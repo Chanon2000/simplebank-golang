@@ -62,6 +62,5 @@ func (processor *RedisTaskProcessor) Start() error {
 }
 
 func (processor *RedisTaskProcessor) Shutdown() {
-	processor.server.Shutdown() // เนื่องจาก processor จาก RedisTaskProcessor มันมี function เพื่อให้เราการ gracefully shutdown อยู่แล้ว เลยง่ายเลย
-	// ซึ่งคือการบอกให้ asynq Server stop processing new tasks และรอทุก on-going task ให้ complete ก่อนแล้วค่อย shutdown
+	processor.server.Shutdown()
 }

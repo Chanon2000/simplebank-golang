@@ -14,7 +14,7 @@ const (
 	authorizationBearer = "bearer"
 )
 
-func (server *Server) authorizeUser(ctx context.Context, accessibleRoles []string) (*token.Payload, error) { // accessibleRoles จะเก็บ list ของ roles ที่สามารถ access ไปที่ target API ได้
+func (server *Server) authorizeUser(ctx context.Context, accessibleRoles []string) (*token.Payload, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("missing metadata")

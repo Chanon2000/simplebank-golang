@@ -26,7 +26,7 @@ require (
 
 require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
-	github.com/lib/pq v1.10.9 // indirect // จะเห็นว่า lib/pq มาอยู่ที่ indirect นั้นเพราะว่ามันยังถูกใช้โดย golang-migrate package นั้นเอง
+	github.com/lib/pq v1.10.9 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 )
 

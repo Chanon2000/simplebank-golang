@@ -1,6 +1,6 @@
 package util
 
-const ( // มีแค่ 2 roles
+const (
 	DepositorRole = "depositor" 
 	BankerRole    = "banker"
 )

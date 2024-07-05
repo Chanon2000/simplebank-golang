@@ -5,11 +5,11 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC" # ดูหรืออ่านเพิ่มเติมได้จาก doc: https://kubernetes.github.io/ingress-nginx/examples/grpc/#step-3-create-the-kubernetes-ingress-resource-for-the-grpc-app
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
 spec:
   ingressClassName: nginx
   rules:
-  - host: "gapi.simple-bank-mick.com" # สมมุติ domain เอง เพราะคุณจะไม่สร้างมันจริงๆ # เปลี่ยนชื่อ api เป็น gapi ทุกจุดเลยเพื่อบอกว่ามันคือ gRPC API
+  - host: "gapi.simple-bank-mick.com"
     http:
       paths:
       - pathType: Prefix

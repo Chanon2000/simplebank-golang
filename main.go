@@ -36,7 +36,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// เพื่อที่จะรู้ว่าควร shotdown เมื่อไหร่ เราต้อง listen บาง interrupt signals ก่อน โดยตรงนี้เราจะทำการประกาศ list of signals
 var interruptSignals = []os.Signal{
 	os.Interrupt,
 	syscall.SIGTERM,
@@ -53,7 +52,7 @@ func main() {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...) // NotifyContext เพื่อทำการ register list ของ signal ที่เราต้องการจะ listen
+	ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...)
 	defer stop()
 	
 	connPool, err := pgxpool.New(ctx, config.DBSource)
@@ -71,15 +70,13 @@ func main() {
 
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
 	
-	waitGroup, ctx := errgroup.WithContext(ctx) // WithContext จาก errgroup จะ return waitGroup และ context // ซึ่งคุณจะเอาไปใช้ในแต่ละ run woker and server function ข้างล่างต่อ
-	// เพื่อที่เราจะเอาไว้รันแต่ละ server และ worker ในคนละ go runtine ข้างในแต่ละ function อีกที
+	waitGroup, ctx := errgroup.WithContext(ctx)
 
-	// โดยตั้ง 3 function นี้ต้องรันในคนละ go routine และรอทั้ง 3 ก่อนที่จะ shutdown เมื่อได้รับ interrupt signal
 	runTaskProcessor(ctx, waitGroup, config, redisOpt, store)
 	runGatewayServer(ctx, waitGroup, config, store, taskDistributor)
 	runGrpcServer(ctx, waitGroup, config, store, taskDistributor)
 
-	err = waitGroup.Wait() // เพื่อรอทุก go routine ให้ compiete ก่อนที่จะ exiting main function
+	err = waitGroup.Wait()
 	if err != nil {
 		log.Fatal().Err(err).Msg("error from wait group")
 	}
@@ -99,18 +96,16 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-// เพื่อรัน task processor
 func runTaskProcessor(ctx context.Context, waitGroup *errgroup.Group, config util.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
 	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
 	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 
 	log.Info().Msg("start task processor")
-	err := taskProcessor.Start() // เนื่องจาก Start() มันจะ start processor ใน go routine แยกอยู่แล้ว เราเลยไม่จำเป็นต้อง create go routine เพิ่มตรงนี้ นั้นเอง
+	err := taskProcessor.Start()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start task processor")
 	}
 
-	// สร้าง go runtine เพื่อ listen interrupts และ gracefully shutdown task processor
 	waitGroup.Go(func() error {
 		<-ctx.Done()
 		log.Info().Msg("graceful shutdown task processor")
@@ -138,13 +133,12 @@ func runGrpcServer(ctx context.Context, waitGroup *errgroup.Group, config util.C
 		log.Fatal().Err(err).Msg("cannot create listener")
 	}
 
-	// start server ใน go runtine
-	waitGroup.Go(func() error { // waitGroup.Go เพื่อ start new go routine // โดยใส่ function เป็น input ซึ่งจะเป็น function ที่รันอีก go runtine นี้นั้นเอง
+	waitGroup.Go(func() error {
 		log.Info().Msgf("start gRPC server at %s", listener.Addr().String())
 
-		err = grpcServer.Serve(listener) // แล้วก็เอา code ตรงนี้ไว้ใน func นี้เพื่อทำการ start gRPC server ให้ go runtine แยกนั้นเอง
+		err = grpcServer.Serve(listener)
 		if err != nil {
-			if errors.Is(err, grpc.ErrServerStopped) { // เพื่อไม่ให้มันแสดง error เนื่อจาก server stop (เนื่องจากโดย default มันจะแสดง error นั้นเอง)// เนื่องจากเราไม่ต้องการให้มันแสดง error เนื่องจากทำการ interrupt ที่ทำให้ server ถูก stop เช่นตอนกด control + c ที่ terminal
+			if errors.Is(err, grpc.ErrServerStopped) {
 				return nil
 			}
 			log.Error().Err(err).Msg("gRPC server failed to serve")
@@ -154,12 +148,11 @@ func runGrpcServer(ctx context.Context, waitGroup *errgroup.Group, config util.C
 		return nil
 	})
 
-	// ส่วนในการ listen interrupt signal และ gracefully shutdown the server // ซึ่งทำให้อีก go runtine นี้โดยการรัน waitGroup.GO
 	waitGroup.Go(func() error {
-		<-ctx.Done() // อ่าน value จาก context.Done() channel ซึ่ง call นี้จะถูก block จนกว่า context จะ done (ซึ่งหมายถึง interrupt signal นั้นเอง)
+		<-ctx.Done()
 		log.Info().Msg("graceful shutdown gRPC server")
 
-		grpcServer.GracefulStop() // รัน GracefulStop เพื่อ stop gRPC server
+		grpcServer.GracefulStop()
 		log.Info().Msg("gRPC server is stopped")
 
 		return nil
@@ -202,17 +195,16 @@ func runGatewayServer(ctx context.Context, waitGroup *errgroup.Group, config uti
 	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
 	mux.Handle("/swagger/", swaggerHandler)
 
-	httpServer := &http.Server{ // ประกาศ httpServer ใหม่
-		Handler: gapi.HttpLogger(mux), // handler function
-		Addr:    config.HTTPServerAddress, // address ของ server
+	httpServer := &http.Server{
+		Handler: gapi.HttpLogger(mux),
+		Addr:    config.HTTPServerAddress,
 	}
 
-	// start server ใน go runtine
 	waitGroup.Go(func() error {
 		log.Info().Msgf("start HTTP gateway server at %s", httpServer.Addr)
-		err = httpServer.ListenAndServe() // start server โดยใช้ ListenAndServe function
+		err = httpServer.ListenAndServe()
 		if err != nil {
-			if errors.Is(err, http.ErrServerClosed) { // เพื่อไม่ให้มันแสดง error เมื่อ http server ถูก stop
+			if errors.Is(err, http.ErrServerClosed) {
 				return nil
 			}
 			log.Error().Err(err).Msg("HTTP gateway server failed to serve")
@@ -221,13 +213,11 @@ func runGatewayServer(ctx context.Context, waitGroup *errgroup.Group, config uti
 		return nil
 	})
 
-	// ส่วนในการ listen interrupt signal และ gracefully shutdown the server
 	waitGroup.Go(func() error {
 		<-ctx.Done()
 		log.Info().Msg("graceful shutdown HTTP gateway server")
 
-		err := httpServer.Shutdown(context.Background()) // Shutdown จะทำการ stop listening new request และจะ wait จนกว่า ทุก active request จะ completed แล้วค่อย shutdown
-		// คุณสามารถใส่ timeout เพื่อบอก maximun time ที่จะ wait ได้ // แต่ครั้งนี้คุณไม่ใส่นั้นหมายความว่า no time limit สำหรับ waiting
+		err := httpServer.Shutdown(context.Background())
 		if err != nil {
 			log.Error().Err(err).Msg("failed to shutdown HTTP gateway server")
 			return err

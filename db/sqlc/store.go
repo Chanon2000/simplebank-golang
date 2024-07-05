@@ -27,5 +27,3 @@ func NewStore(connPool *pgxpool.Pool) Store {
 		Queries:  New(connPool),
 	}
 }
-
-// ในความเป็นจริงหรือ production เรามักต้องการ pool of connections เพื่อจัดการกับ multiple request ใน parallet แทนการแค่จะสร้างแค่ 1 single connection ซึ่ง pgxpool package ทำได้
